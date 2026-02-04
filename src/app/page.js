@@ -621,10 +621,10 @@ export default function Home() {
         {/* Main Footer Section - Blue */}
         <div className="bg-[#002B49] py-12 flex flex-col items-center justify-center relative overflow-hidden">
           <div className="relative z-10 flex flex-col items-center gap-4">
-            <img 
-              src="/logos/emblema.svg" 
-              alt="CASLA Emblema" 
-              className="w-24 h-24 object-contain" 
+            <img
+              src="/logos/emblema.svg"
+              alt="CASLA Emblema"
+              className="w-24 h-24 object-contain"
             />
             <div className="text-center">
               <h3 className="text-white font-black text-2xl uppercase tracking-widest leading-none">
@@ -635,7 +635,7 @@ export default function Home() {
               </p>
             </div>
           </div>
-          
+
           {/* Decorative patterned line */}
           <div className="absolute bottom-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#E30613_10px,#E30613_20px)] opacity-30"></div>
         </div>
@@ -643,7 +643,7 @@ export default function Home() {
         {/* Bottom Bar - Red */}
         <div className="bg-[#E30613] text-white py-3 px-6 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest gap-2">
           <div className="flex items-center gap-2">
-            <span>Sitio Oficial CASLA © 2024</span>
+            <span>Sitio Oficial CASLA © 2026</span>
             <span className="opacity-50">/</span>
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-black/50 transition-colors flex items-center gap-1">
               <span className="text-xs">↑</span> IR A ARRIBA
