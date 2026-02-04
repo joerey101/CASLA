@@ -617,11 +617,44 @@ export default function Home() {
         </main>
       </div>
 
-      <footer className="bg-slate-100 border-t border-slate-200 py-8 text-center text-slate-400 text-[10px] font-black uppercase tracking-[0.3em] flex flex-col items-center gap-2 z-10 relative">
-        <div className="flex gap-4 mb-2 opacity-30 grayscale">
-          <img src={SHIELD_URL} alt="logo footer" className="w-6 h-6" />
+      <footer className="w-full relative z-10 flex flex-col">
+        {/* Main Footer Section - Blue */}
+        <div className="bg-[#002B49] py-12 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            <img 
+              src="/logos/emblema.svg" 
+              alt="CASLA Emblema" 
+              className="w-24 h-24 object-contain" 
+            />
+            <div className="text-center">
+              <h3 className="text-white font-black text-2xl uppercase tracking-widest leading-none">
+                SAN LORENZO
+              </h3>
+              <p className="text-white/60 font-light text-sm uppercase tracking-[0.5em]">
+                DE ALMAGRO
+              </p>
+            </div>
+          </div>
+          
+          {/* Decorative patterned line */}
+          <div className="absolute bottom-0 left-0 right-0 h-2 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,#E30613_10px,#E30613_20px)] opacity-30"></div>
         </div>
-        SAN LORENZO DE AlMAGRO | SISTEMA SOCIOS CUERVOS 2.0 | USO INTERNO EXCLUSIVO
+
+        {/* Bottom Bar - Red */}
+        <div className="bg-[#E30613] text-white py-3 px-6 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold uppercase tracking-widest gap-2">
+          <div className="flex items-center gap-2">
+            <span>Sitio Oficial CASLA © 2024</span>
+            <span className="opacity-50">/</span>
+            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-black/50 transition-colors flex items-center gap-1">
+              <span className="text-xs">↑</span> IR A ARRIBA
+            </button>
+          </div>
+          <div className="flex items-center gap-2 md:text-right opacity-80">
+            <span>Alojado en NUTHOST</span>
+            <span className="opacity-50">/</span>
+            <span>Desarrollado por Naxela</span>
+          </div>
+        </div>
       </footer>
     </div>
   );
