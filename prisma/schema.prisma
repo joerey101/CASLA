@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Member {
+  id            String   @id @default(cuid())
+  dni           String   @unique
+  memberNumber  String   @unique // N° Socio
+  fullName      String
+  category      String   // Activo Pleno, Cadete, etc.
+  status        String   // ACTIVO - AL DÍA, MOROSO
+  seniority     String?  // Antigüedad (e.g. "12 años")
+  
+  // Entitlements (Derechos de acceso)
+  seatLocation  String?  // Platea Norte Baja
+  sector        String?  // Sector C - Fila 12
+  gate          String?  // Puerta 4
+  accessPoint   String?  // Av. La Plata
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  accessLogs    AccessLog[]
+}
+
+model AccessLog {
+  id        String   @id @default(cuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  gate      String
+  status    String   // GRANTED, DENIED
+  timestamp DateTime @default(now())
+}
+
+model Match {
+  id        String   @id @default(cuid())
+  rival     String
+  date      DateTime
+  time      String
+  tournament String
+  isClassic Boolean  @default(false)
+  isLocal   Boolean  @default(true)
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   
+  role      String   @default("ADMIN") // ADMIN, STAFF
+  name      String?
+}
