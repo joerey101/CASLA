@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import {
-  Search, Home, Users, CreditCard, ClipboardCheck, MessageSquare,
+  Search, Home as HomeIcon, Users, CreditCard, ClipboardCheck, MessageSquare,
   AlertTriangle, HelpCircle, Phone, Copy, CheckCircle2, Mail,
   Smartphone, ShieldCheck, TrendingUp, Car, MapPin, Ticket,
   Settings, BarChart3, Lock, LogOut, UserPlus, Info, ExternalLink,
@@ -257,7 +257,7 @@ export default function Home() {
           {!isAdmin ? (
             <>
               {[
-                { id: 'inicio', label: 'Dashboard General', icon: Home },
+                { id: 'inicio', label: 'Dashboard General', icon: HomeIcon },
                 { id: 'tramites', label: 'Trámites Operativos', icon: ClipboardCheck },
                 { id: 'reclamos', label: 'Gestión de Reclamos', icon: AlertTriangle },
                 { id: 'scripts', label: 'Scripts de Respuesta', icon: MessageSquare },
@@ -471,8 +471,8 @@ export default function Home() {
                             <td className="p-5 text-slate-600 text-sm align-top leading-relaxed">{claim.action}</td>
                             <td className="p-5 align-top">
                               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${claim.priority.includes("Crítica") ? "bg-red-100 text-red-800" :
-                                  claim.priority.includes("Alta") ? "bg-orange-100 text-orange-800" :
-                                    "bg-blue-100 text-blue-800"
+                                claim.priority.includes("Alta") ? "bg-orange-100 text-orange-800" :
+                                  "bg-blue-100 text-blue-800"
                                 }`}>
                                 {claim.priority}
                               </span>
