@@ -166,7 +166,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center p-1.5 shadow-lg border-2 border-slate-200">
               <img
-                src={SHIELD_URL}
+                src="/logos/sanlorenzo-v7.png"
                 alt="CASLA Logo"
                 className="w-full h-full object-contain"
               />
