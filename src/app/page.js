@@ -18,19 +18,46 @@ const generateMockDatabase = () => {
   const lastnames = ["Perez", "Garcia", "Lopez", "Martinez", "Gonzalez", "Rodriguez", "Fernandez", "Torres", "Ramirez", "Flores", "Acosta", "Benitez", "Castro", "Diaz", "Escobar", "Gimenez", "Herrera", "Ibarra", "Juarez", "Luna"];
   const categories = ["Activo Pleno", "Activo Simple", "Cadete", "Infantil", "Vitalicio", "Socio Interior"];
   const activities = ["Natación", "Tenis", "Futsal", "Voley", "Hockey", "Básquet", "Ninguna"];
+  const caseTypes = ["Cobro Duplicado", "Acceso Denegado", "Carnet Perdido", "Cambio Domicilio", "Baja Solicitud"];
+  const caseStatuses = ["Abierto", "En Proceso", "Escalado", "Resuelto", "Cerrado"];
 
   const mockData = Array.from({ length: 100 }, (_, i) => {
-    const id = i + 2; // Empezamos en 2 porque el 1 es el fijo
+    const id = i + 2;
     const name = names[Math.floor(Math.random() * names.length)];
     const lastname = lastnames[Math.floor(Math.random() * lastnames.length)];
+    const categoria = categories[Math.floor(Math.random() * categories.length)];
+    const estado = Math.random() > 0.1 ? "ACTIVO - AL DÍA" : "MOROSO (2 Cuotas)";
+    const antiguedadYears = Math.floor(Math.random() * 20) + 1;
+
+    // Entitlements Logic (Motor de Derechos)
+    const entitlements = {
+      acceso_estadio: estado.includes("ACTIVO"),
+      acceso_sede: estado.includes("ACTIVO") && categoria !== "Socio Interior",
+      voto_habilitado: antiguedadYears > 3 && Number(id) > 18 && estado.includes("ACTIVO"),
+      estacionamiento: Math.random() > 0.85
+    };
+
+    // Cases History (CRM Operativo)
+    const activeCases = Math.random() > 0.7 ? [
+      {
+        id: `CAS-${1000 + id}`,
+        tipo: caseTypes[Math.floor(Math.random() * caseTypes.length)],
+        prioridad: Math.random() > 0.8 ? "Alta" : "Normal",
+        estado: caseStatuses[Math.floor(Math.random() * 3)], // Abierto, En Proceso, Escalado
+        fecha_apertura: "2026-02-01",
+        sla_restante: Math.floor(Math.random() * 48) + "hs",
+        origen: "WhatsApp"
+      }
+    ] : [];
+
     return {
       id: id.toString(),
       nombre: `${name} ${lastname}`,
       numero: (90000 + id).toString(),
       dni: (30000000 + id).toString(),
-      estado: Math.random() > 0.1 ? "ACTIVO - AL DÍA" : "MOROSO (2 Cuotas)",
-      categoria: categories[Math.floor(Math.random() * categories.length)],
-      antiguedad: `${Math.floor(Math.random() * 20) + 1} años`,
+      estado: estado,
+      categoria: categoria,
+      antiguedad: `${antiguedadYears} años`,
       saldo: Math.random() > 0.8 ? -15000 : 0,
       actividad: activities[Math.floor(Math.random() * activities.length)],
       domicilio: `Av. La Plata ${1700 + id}, CABA`,
@@ -43,12 +70,18 @@ const generateMockDatabase = () => {
         asiento: Math.floor(Math.random() * 100),
         puerta: Math.random() > 0.5 ? "10" : "4",
       },
-      cochera: Math.random() > 0.9 ? { asignada: true, sector: "Playón A", numero: id } : { asignada: false },
+      cochera: {
+        asignada: entitlements.estacionamiento,
+        sector: "Playón A",
+        numero: id
+      },
+      entitlements: entitlements,
+      casos: activeCases,
       canje: Math.random() > 0.3 ? { estado: "CONFIRMADO", partido: "Próximo", qr_token: `QR-${id}` } : { estado: "PENDIENTE" }
     };
   });
 
-  // Agregamos el socio de prueba histórico para asegurar que siempre haya un resultado conocido
+  // Socio Fijo Juan Carlos Cuervo (Con Caso Abierto Crítico para demo)
   const fixedMember = {
     id: "1",
     nombre: "Juan Carlos Cuervo",
@@ -70,6 +103,23 @@ const generateMockDatabase = () => {
       puerta: "4",
     },
     cochera: { asignada: true, sector: "Playón A", numero: "104" },
+    entitlements: {
+      acceso_estadio: true,
+      acceso_sede: true,
+      voto_habilitado: true,
+      estacionamiento: true
+    },
+    casos: [
+      {
+        id: "CAS-9901",
+        tipo: "Error de Cobro",
+        prioridad: "Crítica",
+        estado: "Escalado",
+        fecha_apertura: "2026-02-04",
+        sla_restante: "4hs",
+        origen: "Presencial"
+      }
+    ],
     canje: { estado: "CONFIRMADO", partido: "vs Independiente", qr_token: "QR-90123" }
   };
 
@@ -335,7 +385,7 @@ export default function App() {
           <div className="bg-white md:bg-transparent rounded-2xl shadow-xl md:shadow-none p-2 md:p-0 space-y-1">
             <button key="inicio" onClick={() => { setActiveTab('inicio'); setShowMemberProfile(false); }} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold ${activeTab === 'inicio' ? 'bg-[#002D58] text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}><Home size={18} /> Dashboard</button>
             <button key="inbox" onClick={() => setActiveTab('inbox')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold ${activeTab === 'inbox' ? 'bg-[#002D58] text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}>
-              <div className="relative"><Inbox size={18} />{inboxMessages.filter(m => m.unread).length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>}</div> Bandeja Entrada
+              <div className="relative"><Inbox size={18} />{database.flatMap(u => u.casos).filter(c => c.estado !== 'Cerrado').length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>}</div> Gestión de Casos
             </button>
             <div className="my-2 border-t border-slate-200/50"></div>
             <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Operativo</p>
@@ -483,11 +533,21 @@ export default function App() {
                   </div>
                 </div>
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                  <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2"><Info size={18} /> Datos</h3>
-                  <div className="space-y-1 text-sm text-slate-600">
+                  <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2"><Info size={18} /> Datos & Derechos</h3>
+                  <div className="space-y-1 text-sm text-slate-600 mb-4">
                     <p>DNI: {searchResult.dni}</p>
                     <p>Domicilio: {searchResult.domicilio}</p>
                     <p>Actividad: {searchResult.actividad}</p>
+                  </div>
+
+                  {/* Visualizador de Entitlements (Derechos) */}
+                  <div className="grid grid-cols-2 gap-2 text-[10px] font-bold uppercase tracking-widest">
+                    <div className={`p-2 rounded border ${searchResult.entitlements.acceso_estadio ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                      {searchResult.entitlements.acceso_estadio ? 'Habilitado Estadio' : 'Inhabilitado Estadio'}
+                    </div>
+                    <div className={`p-2 rounded border ${searchResult.entitlements.voto_habilitado ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+                      {searchResult.entitlements.voto_habilitado ? 'Padrón Electoral' : 'No Vota'}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -662,71 +722,204 @@ export default function App() {
           )}
 
           {/* --- GESTIÓN --- */}
+          {/* --- GESTIÓN (KPIs REALES) --- */}
           {activeTab === 'gestion' && (currentUser.role === 'admin' || currentUser.role === 'supervisor') && (
             <div className="space-y-6 animate-in fade-in">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-blue-500">
-                  <p className="text-[10px] uppercase font-black text-slate-400">Mails Recibidos</p>
-                  <p className="text-3xl font-black text-slate-800">120</p>
-                  <div className="flex justify-between text-[10px] mt-2 font-bold"><span className="text-green-600">98 Respondidos</span><span className="text-red-500">22 Pendientes</span></div>
+                  <p className="text-[10px] uppercase font-black text-slate-400">Total Socios Mock</p>
+                  <p className="text-3xl font-black text-slate-800">{database.length}</p>
+                  <div className="flex justify-between text-[10px] mt-2 font-bold"><span className="text-green-600">{Math.round((database.filter(u => u.estado.includes('ACTIVO')).length / database.length) * 100)}% Activos</span></div>
                 </div>
                 <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-orange-500">
-                  <p className="text-[10px] uppercase font-black text-slate-400">Tiempo Atención</p>
-                  <p className="text-3xl font-black text-orange-600">4.5m</p>
-                  <p className="text-xs text-slate-500">Promedio por ticket</p>
+                  <p className="text-[10px] uppercase font-black text-slate-400">Casos Abiertos</p>
+                  <p className="text-3xl font-black text-orange-600">{database.flatMap(u => u.casos).filter(c => c.estado !== 'Cerrado' && c.estado !== 'Resuelto').length}</p>
+                  <p className="text-xs text-slate-500">Pendientes de gestión</p>
                 </div>
                 <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-green-500">
-                  <p className="text-[10px] uppercase font-black text-slate-400">CSAT Score</p>
-                  <p className="text-3xl font-black text-green-600">4.8</p>
-                  <p className="text-xs text-slate-500">Satisfacción Socio</p>
+                  <p className="text-[10px] uppercase font-black text-slate-400">Recaudación Estimada</p>
+                  <p className="text-3xl font-black text-green-600">$ {(database.filter(u => u.entitlements.acceso_estadio).length * 15000 / 1000000).toFixed(1)}M</p>
+                  <p className="text-xs text-slate-500">Proyección cuota mensual</p>
                 </div>
                 <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-red-500">
-                  <p className="text-[10px] uppercase font-black text-slate-400">Tickets Críticos</p>
-                  <p className="text-3xl font-black text-red-600">5</p>
-                  <p className="text-xs text-slate-500">Escalados a Admin</p>
+                  <p className="text-[10px] uppercase font-black text-slate-400">Casos Críticos</p>
+                  <p className="text-3xl font-black text-red-600">{database.flatMap(u => u.casos).filter(c => c.prioridad === 'Crítica').length}</p>
+                  <p className="text-xs text-slate-500">Requieren atención inmediata</p>
                 </div>
               </div>
             </div>
           )}
 
-          {/* --- BANDEJA ENTRADA --- */}
+          {/* --- GESTIÓN DE CASOS (CRM) --- */}
           {activeTab === 'inbox' && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row h-[600px] animate-in fade-in">
-              <div className="w-full md:w-80 border-r border-slate-100 flex flex-col">
-                <div className="p-4 border-b border-slate-100 bg-slate-50">
-                  <h3 className="font-black text-blue-900 text-sm uppercase">Mensajes Pendientes</h3>
-                </div>
-                <div className="flex-1 overflow-y-auto">
-                  {inboxMessages.map(msg => (
-                    <button key={msg.id} onClick={() => setSelectedMessage(msg)} className={`w-full text-left p-4 border-b border-slate-50 hover:bg-slate-50 transition-colors ${selectedMessage?.id === msg.id ? 'bg-blue-50' : ''}`}>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-xs">{msg.user}</span>
-                        <span className="text-[10px] text-slate-400">{msg.time}</span>
-                      </div>
-                      <p className="text-xs text-slate-600 line-clamp-1">{msg.text}</p>
-                      <span className={`text-[9px] font-black uppercase tracking-widest ${msg.channel === 'whatsapp' ? 'text-green-600' : 'text-blue-600'}`}>{msg.channel}</span>
-                    </button>
-                  ))}
+            <div className="space-y-4 animate-in fade-in">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-black text-blue-900 flex items-center gap-2"><Inbox size={24} /> Tablero de Casos</h2>
+                <div className="flex gap-2">
+                  <button className="bg-slate-200 px-3 py-1 rounded-lg text-xs font-bold text-slate-600">Todos</button>
+                  <button className="bg-white border border-slate-200 px-3 py-1 rounded-lg text-xs font-bold text-slate-400">Mis Casos</button>
+                  <button className="bg-red-50 border border-red-200 px-3 py-1 rounded-lg text-xs font-bold text-red-600">Críticos</button>
                 </div>
               </div>
-              <div className="flex-1 flex flex-col bg-slate-50/30">
-                {selectedMessage ? (
-                  <>
-                    <div className="p-6 border-b border-slate-100 bg-white">
-                      <h4 className="font-black text-blue-900">{selectedMessage.user}</h4>
-                      <p className="text-sm text-slate-600 mt-2">{selectedMessage.text}</p>
-                    </div>
-                    <div className="flex-1 p-6">
-                      <textarea value={replyText} onChange={(e) => setReplyText(e.target.value)} placeholder="Escribir respuesta..." className="w-full h-40 bg-white border border-slate-200 rounded-2xl p-4 text-sm outline-none focus:border-blue-500 transition-all shadow-inner"></textarea>
-                    </div>
-                    <div className="p-4 bg-white border-t border-slate-100 flex justify-end gap-2">
-                      <button className="px-6 py-2 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100">Cerrar</button>
-                      <button className="bg-blue-900 text-white px-8 py-2 rounded-xl text-sm font-bold shadow-lg hover:bg-blue-800 flex items-center gap-2"><Send size={16} /> Responder</button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-slate-400 text-sm font-bold italic">Seleccioná un mensaje para responder</div>
+
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-slate-600">
+                    <thead className="bg-slate-50 text-xs uppercase font-black text-slate-400 border-b border-slate-100">
+                      <tr>
+                        <th className="p-4">ID Caso</th>
+                        <th className="p-4">Tipo</th>
+                        <th className="p-4">Socio</th>
+                        <th className="p-4">Prioridad</th>
+                        <th className="p-4">Estado</th>
+                        <th className="p-4">SLA</th>
+                        <th className="p-4">Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {database.flatMap(u => u.casos.map(c => ({ ...c, user: u }))).map((caso) => (
+                        <tr key={caso.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="p-4 font-bold text-slate-800">{caso.id}</td>
+                          <td className="p-4 text-xs font-bold uppercase">{caso.tipo}</td>
+                          <td className="p-4">
+                            <div>
+                              <p className="font-bold text-blue-900">{caso.user.nombre}</p>
+                              <p className="text-[10px] uppercase">{caso.user.categoria}</p>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${caso.prioridad === 'Alta' || caso.prioridad === 'Crítica' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                              {caso.prioridad}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-black uppercase ${caso.estado === 'Abierto' ? 'bg-blue-100 text-blue-600' : caso.estado === 'Resuelto' ? 'bg-gray-100 text-gray-600' : 'bg-orange-100 text-orange-600'}`}>
+                              {caso.estado}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center gap-1 font-bold text-xs text-slate-500">
+                              <Clock size={14} className={parseInt(caso.sla_restante) < 24 ? "text-red-500" : "text-green-500"} />
+                              {caso.sla_restante}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <button onClick={() => { setSearchResult(caso.user); setShowMemberProfile(true); }} className="text-blue-600 hover:text-blue-800 font-bold text-xs border border-blue-200 px-3 py-1.5 rounded-lg">Gestionar</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {database.flatMap(u => u.casos).length === 0 && (
+                  <div className="p-8 text-center text-slate-400 font-bold text-sm">
+                    No hay casos activos en este momento.
+                  </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* --- MODO DÍA DE PARTIDO (OPERACIONAL) --- */}
+          {showEmergency && (
+            <div className="fixed inset-0 z-50 bg-[#002D58] text-white flex flex-col p-4 animate-in fade-in duration-300">
+              <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-black uppercase tracking-tight flex items-center gap-3">
+                  <AlertTriangle className="text-red-500 animate-pulse" size={32} />
+                  OPERATIVO DÍA DE PARTIDO
+                </h1>
+                <button onClick={() => setShowEmergency(false)} className="bg-white/10 hover:bg-white/20 p-3 rounded-full"><X size={24} /></button>
+              </div>
+
+              <div className="flex-1 flex gap-6">
+                {/* Panel Izquierdo: Buscador Rápido */}
+                <div className="w-1/3 flex flex-col gap-4">
+                  <div className="bg-white/10 p-6 rounded-3xl border-2 border-white/20 shadow-xl">
+                    <label className="text-sm font-bold uppercase opacity-70 mb-2 block">Escaneo Rápido (QR / DNI)</label>
+                    <input autoFocus type="text" placeholder="Escaneando..." className="w-full bg-blue-950/50 text-white text-3xl font-black p-4 rounded-xl border border-blue-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 outline-none uppercase tracking-widest placeholder-blue-500/50"
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        if (e.target.value.length > 3) handleSearch();
+                      }}
+                    />
+                    <p className="text-[10px] mt-2 opacity-50 text-center">Teclear ENTER para búsqueda manual</p>
+                  </div>
+
+                  {searchResult && (
+                    <div className={`flex-1 p-6 rounded-3xl border-4 shadow-2xl flex flex-col items-center justify-center text-center ${searchResult.entitlements.acceso_estadio ? 'bg-green-600 border-green-400' : 'bg-red-600 border-red-400'}`}>
+                      {searchResult.entitlements.acceso_estadio ? (
+                        <>
+                          <CheckCircle2 size={80} className="text-white mb-4" />
+                          <h2 className="text-4xl font-black uppercase">HABILITADO</h2>
+                          <p className="text-xl font-bold mt-2 opacity-90">{searchResult.estadio.sector}</p>
+                          <p className="text-lg font-bold opacity-80">Puerta {searchResult.estadio.puerta}</p>
+                        </>
+                      ) : (
+                        <>
+                          <XCircle size={80} className="text-white mb-4" />
+                          <h2 className="text-4xl font-black uppercase">DENEGADO</h2>
+                          <p className="text-xl font-bold mt-2 opacity-90">{searchResult.estado}</p>
+                          <p className="text-sm font-bold opacity-80 mt-2 bg-black/20 px-4 py-1 rounded-full">Requiere Atención</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Panel Derecho: Perfil y Acciones */}
+                <div className="w-2/3 bg-slate-100 text-slate-900 rounded-3xl p-6 shadow-2xl flex flex-col">
+                  {searchResult ? (
+                    <>
+                      <div className="flex gap-6 mb-6">
+                        <div className="w-24 h-24 bg-slate-300 rounded-2xl flex items-center justify-center text-4xl font-black text-slate-500">{searchResult.nombre.charAt(0)}</div>
+                        <div>
+                          <h2 className="text-3xl font-black text-blue-900">{searchResult.nombre}</h2>
+                          <p className="text-xl font-bold text-slate-600">Socio #{searchResult.numero} <span className="opacity-50">|</span> {searchResult.categoria}</p>
+                          <div className="flex gap-2 mt-2">
+                            {searchResult.entitlements.cochera.asignada && <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-lg font-bold text-xs uppercase border border-blue-200">🚗 Cochera {searchResult.cochera.sector}</span>}
+                            <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-lg font-bold text-xs uppercase border border-slate-300">Antigüedad {searchResult.antiguedad}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                          <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Estado de Cuenta</h3>
+                          <p className={`text-2xl font-black ${searchResult.saldo < 0 ? 'text-red-500' : 'text-green-500'}`}>{searchResult.saldo < 0 ? 'DEUDA PENDIENTE' : 'AL DÍA'}</p>
+                          <p className="text-sm font-bold text-slate-500">{searchResult.saldo < 0 ? '$ ' + Math.abs(searchResult.saldo) : 'Sin deuda exigible'}</p>
+                        </div>
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200">
+                          <h3 className="text-xs font-black uppercase text-slate-400 mb-2">Último Acceso</h3>
+                          <p className="text-2xl font-black text-blue-900">19/02/2026</p>
+                          <p className="text-sm font-bold text-slate-500">Molinete 4 - 19:30hs</p>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 bg-white rounded-2xl border border-slate-200 p-4">
+                        <h3 className="text-sm font-black uppercase text-blue-900 mb-4 flex items-center gap-2"><Settings size={18} /> Resolución de Contingencia</h3>
+                        <div className="grid grid-cols-3 gap-3 h-full max-h-[200px]">
+                          <button className="bg-green-600 hover:bg-green-700 text-white rounded-xl font-black text-lg shadow-lg flex flex-col items-center justify-center gap-2">
+                            <CheckCircle2 size={32} />
+                            AUTORIZAR (QR FALLÓ)
+                          </button>
+                          <button className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black text-lg shadow-lg flex flex-col items-center justify-center gap-2">
+                            <CreditCard size={32} />
+                            COBRAR Y PASAR
+                          </button>
+                          <button className="bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-black text-lg shadow-lg flex flex-col items-center justify-center gap-2">
+                            <Printer size={32} />
+                            IMPRIMIR TICKET
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center opacity-50">
+                      <Search size={64} className="mb-4 text-slate-400" />
+                      <h3 className="text-2xl font-bold text-slate-400">Esperando lectura...</h3>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
