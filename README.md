@@ -1,36 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# CASLA - Portal de Administración de Socios 4.0
 
-## Getting Started
+Este es el repositorio oficial del Portal de Administración de Socios de **San Lorenzo de Almagro**.
 
-First, run the development server:
+## 🚀 Configuración de Despliegue (MEMORIA)
+- **Despliegue**: Este proyecto está vinculado a **Vercel**.
+- **Repositorio**: Se sincroniza mediante **GitHub**.
+- **CI/CD**: Cada `git push` a la rama `main` dispara automáticamente un despliegue en Vercel.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🛠 Comandos Útiles
+- `npm run dev`: Inicia el servidor de desarrollo local en `localhost:3000`.
+- `git add . && git commit -m "descripción" && git push origin main`: Sincroniza y despliega automáticamente.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📁 Estructura del Proyecto
+- `src/app/page.js`: Punto de entrada principal y lógica del Portal ADM.
+- `.agent/workflows/configuracion.md`: Instrucciones de configuración para asistentes IA.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 👥 Roles de Acceso
+- **Admin**: Acceso total a KPIs y control de molinetes.
+- **Supervisor**: Gestión de partidos y aprobaciones.
+- **Operador**: Atención de trámites y venta de entradas.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+© 2026 San Lorenzo de Almagro - Portal ADM 4.0
