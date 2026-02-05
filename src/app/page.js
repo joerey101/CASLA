@@ -106,6 +106,7 @@ export default function App() {
   const [showEmergency, setShowEmergency] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState(null);
+  const [searchResults, setSearchResults] = useState([]); // Nuevo: Para múltiples resultados
   const [showMemberProfile, setShowMemberProfile] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -219,11 +220,10 @@ export default function App() {
   const handleSearch = () => {
     if (!searchQuery) return;
 
-    // Normalizamos la búsqueda: quitamos puntos y espacios para búsquedas numéricas
     const cleanQuery = searchQuery.replace(/\./g, "").replace(/\s/g, "").toLowerCase();
 
-    // BUSCADOR REAL SOBRE MOCK DATABASE
-    const found = database.find(s => {
+    // Filtramos TODOS los que coincidan
+    const matches = database.filter(s => {
       const cleanNumero = s.numero.replace(/\./g, "");
       const cleanDNI = s.dni.replace(/\./g, "");
       return (
@@ -233,14 +233,27 @@ export default function App() {
       );
     });
 
-    if (found) {
-      setSearchResult(found);
-      setShowMemberProfile(true); // Auto-abrir perfil
+    if (matches.length === 1) {
+      setSearchResult(matches[0]);
+      setSearchResults([]);
+      setShowMemberProfile(true);
+    } else if (matches.length > 1) {
+      setSearchResults(matches);
+      setSearchResult(null);
+      setShowMemberProfile(false);
+      setActiveTab('inicio'); // Volvemos a inicio para mostrar la lista
     } else {
       alert("Socio no encontrado. Tip: Probá con 'Juan Carlos Cuervo' o '90123'.");
       setSearchResult(null);
+      setSearchResults([]);
     }
     setIsMobileMenuOpen(false);
+  };
+
+  const selectMember = (member) => {
+    setSearchResult(member);
+    setSearchResults([]);
+    setShowMemberProfile(true);
   };
 
   const copyToClipboard = (text, id) => {
@@ -365,29 +378,67 @@ export default function App() {
                   </div>
                 ))}
               </div>
-              {/* Próximos Partidos (Editable por Super/Admin) */}
-              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="bg-blue-900 p-4 flex items-center justify-between">
-                  <h3 className="text-white font-bold flex items-center gap-2 text-sm md:text-base"><Calendar className="text-red-500" size={20} /> Próximos Partidos</h3>
-                </div>
-                <div className="divide-y divide-slate-100">
-                  {matches.map((match, idx) => (
-                    <div key={idx} className="p-4 flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-slate-50">
-                      <div className="flex items-center gap-4 w-full md:w-auto">
-                        <div className="bg-slate-100 p-2 rounded-xl text-center min-w-[60px]">
-                          <p className="text-[10px] font-black text-slate-400 uppercase">{match.fecha.split(' ')[0]}</p>
-                          <p className="text-base font-black text-blue-900">{match.fecha.split(' ')[1]}</p>
+
+              {/* Resultados de Búsqueda Múltiple */}
+              {searchResults.length > 0 && (
+                <div className="bg-orange-50 rounded-3xl border-2 border-orange-200 overflow-hidden animate-in zoom-in-95">
+                  <div className="bg-orange-500 p-3 flex justify-between items-center text-white">
+                    <h3 className="font-bold text-sm">Se encontraron {searchResults.length} socios</h3>
+                    <button onClick={() => setSearchResults([])}><X size={16} /></button>
+                  </div>
+                  <div className="max-h-60 overflow-y-auto">
+                    {searchResults.map(s => (
+                      <div key={s.id} onClick={() => selectMember(s)} className="p-3 border-b border-orange-100 hover:bg-orange-100 cursor-pointer flex justify-between items-center transition-colors">
+                        <div>
+                          <p className="font-bold text-slate-800 text-xs">{s.nombre}</p>
+                          <p className="text-[10px] text-slate-500">Socio N° {s.numero} | DNI: {s.dni}</p>
                         </div>
-                        <div><p className="font-bold text-slate-800 flex items-center gap-2">VS {match.rival}</p><p className="text-xs text-slate-500">{match.torneo} | Pop: ${match.precios.pop}</p></div>
+                        <span className="text-[9px] font-black text-orange-600 bg-white px-2 py-1 rounded-full uppercase">{s.categoria}</span>
                       </div>
-                      <div className="flex gap-2">
-                        {(currentUser.role !== 'operator') && (
-                          <button onClick={() => handleEditMatch(match)} className="text-xs font-bold text-slate-500 hover:text-blue-900 px-3 py-2 border border-slate-200 rounded-lg">Editar</button>
-                        )}
-                        <button onClick={() => { setActiveTab('entradas'); setTicketModal(match); }} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md">Vender</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Próximos Partidos */}
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                  <div className="bg-blue-900 p-4 flex items-center justify-between">
+                    <h3 className="text-white font-bold flex items-center gap-2 text-sm"><Calendar className="text-red-500" size={18} /> Próximos Partidos</h3>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {matches.map((match, idx) => (
+                      <div key={idx} className="p-4 flex items-center justify-between hover:bg-slate-50">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-slate-100 p-2 rounded-xl text-center min-w-[50px]">
+                            <p className="text-[8px] font-black text-slate-400 uppercase">{match.fecha.split(' ')[0]}</p>
+                            <p className="text-sm font-black text-blue-900">{match.fecha.split(' ')[1]}</p>
+                          </div>
+                          <div><p className="font-bold text-slate-800 text-xs">VS {match.rival}</p><p className="text-[10px] text-slate-500">{match.torneo}</p></div>
+                        </div>
+                        <button onClick={() => { setActiveTab('entradas'); setTicketModal(match); }} className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md">Vender</button>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                </div>
+
+                {/* Socios Recientes de la DB */}
+                <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                  <div className="bg-slate-800 p-4 flex items-center justify-between">
+                    <h3 className="text-white font-bold flex items-center gap-2 text-sm"><Users className="text-blue-400" size={18} /> Padrones Recientes</h3>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">Mock DB</span>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {database.slice(1, 6).map((socio) => (
+                      <div key={socio.id} onClick={() => selectMember(socio)} className="p-4 flex items-center justify-between hover:bg-slate-50 cursor-pointer">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-blue-900 font-bold text-xs">{socio.nombre.charAt(0)}</div>
+                          <div><p className="font-bold text-slate-800 text-xs">{socio.nombre}</p><p className="text-[10px] text-slate-500">N° {socio.numero}</p></div>
+                        </div>
+                        <span className={`text-[9px] font-black px-2 py-1 rounded-full ${socio.estado.includes('ACTIVO') ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{socio.estado}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
