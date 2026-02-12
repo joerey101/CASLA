@@ -13,7 +13,7 @@ export default function LoginScreen() {
         e.preventDefault();
         setLoginError('');
         const result = await signIn('credentials', {
-            email: loginForm.user,
+            username: loginForm.user,
             password: loginForm.pass,
             redirect: false,
         });
