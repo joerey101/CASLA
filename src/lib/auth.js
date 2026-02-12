@@ -18,6 +18,22 @@ export const authOptions = {
                         role: "admin"
                     };
                 }
+                if (credentials?.username === "operador" && credentials?.password === "admin") {
+                    return {
+                        id: "2",
+                        name: "Operador CASLA",
+                        email: "operador@casla.com.ar",
+                        role: "staff"
+                    };
+                }
+                if (credentials?.username === "admin@casla.com.ar" && credentials?.password === "admin") {
+                    return {
+                        id: "3",
+                        name: "Director CASLA",
+                        email: "admin@casla.com.ar",
+                        role: "admin"
+                    };
+                }
                 return null;
             }
         })
