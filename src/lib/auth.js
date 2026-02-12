@@ -9,31 +9,23 @@ export const authOptions = {
                 password: { label: "Contraseña", type: "password" }
             },
             async authorize(credentials) {
-                // Legacy Logic - EXACTLY as verify version 7c465c0
-                if (credentials?.username === "admin" && credentials?.password === "admin") {
-                    return {
-                        id: "1",
-                        name: "Admin CASLA",
-                        email: "admin@casla.com.ar",
-                        role: "admin"
-                    };
+                const { username, password } = credentials || {};
+
+                // 1. Admin
+                if (username === "admin" && password === "admin") {
+                    return { id: "1", name: "Admin CASLA", email: "admin@casla.com.ar", role: "admin" };
                 }
-                if (credentials?.username === "operador" && credentials?.password === "admin") {
-                    return {
-                        id: "2",
-                        name: "Operador CASLA",
-                        email: "operador@casla.com.ar",
-                        role: "staff"
-                    };
+
+                // 2. Super
+                if (username === "super" && password === "super") {
+                    return { id: "2", name: "Superuser CASLA", email: "super@casla.com.ar", role: "admin" };
                 }
-                if (credentials?.username === "admin@casla.com.ar" && credentials?.password === "admin") {
-                    return {
-                        id: "3",
-                        name: "Director CASLA",
-                        email: "admin@casla.com.ar",
-                        role: "admin"
-                    };
+
+                // 3. Oper
+                if (username === "oper" && password === "oper") {
+                    return { id: "3", name: "Operador CASLA", email: "oper@casla.com.ar", role: "staff" };
                 }
+
                 return null;
             }
         })
