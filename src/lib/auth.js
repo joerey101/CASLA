@@ -11,7 +11,7 @@ export const authOptions = {
             async authorize(credentials) {
                 // MOCK AUTH for Phase 1
                 // In Phase 2: Connect to Prisma DB
-                if (credentials?.email === "admin@casla.com.ar" && credentials?.password === "CaslaAdmin") {
+                if (credentials?.email === "admin" && credentials?.password === "casla2024") {
                     return { id: "1", name: "Admin CASLA", email: "admin@casla.com.ar", role: "ADMIN" };
                 }
 
