@@ -36,6 +36,6 @@ export const authOptions = {
             return session;
         }
     },
-    secret: process.env.NEXTAUTH_SECRET,
-    trustHost: true,
+    debug: true,
+    secret: 'casla-portal-secret-2026-v5-fixed',
 };
