@@ -10,7 +10,7 @@ export const authOptions = {
             },
             async authorize(credentials) {
                 // Legacy Logic - EXACTLY as verify version 7c465c0
-                if (credentials?.username === "admin" && credentials?.password === "casla2024") {
+                if (credentials?.username === "admin" && credentials?.password === "admin") {
                     return {
                         id: "1",
                         name: "Admin CASLA",
