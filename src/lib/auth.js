@@ -22,10 +22,6 @@ export const authOptions = {
             }
         })
     ],
-    pages: {
-        signIn: '/', // Home acts as login
-        error: '/api/auth/error',
-    },
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
