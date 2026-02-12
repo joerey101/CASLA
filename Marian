@@ -1,0 +1,655 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Search, Home, Users, CreditCard, ClipboardCheck, MessageSquare, 
+  AlertTriangle, HelpCircle, Phone, Copy, CheckCircle2, Mail, 
+  Smartphone, ShieldCheck, TrendingUp, Car, MapPin, Ticket,
+  Settings, BarChart3, Lock, LogOut, UserPlus, Info, ExternalLink,
+  UserMinus, RefreshCw, FileText, Calendar, Clock, CreditCard as CardIcon,
+  DollarSign, Receipt, Printer, X, Armchair, QrCode, Menu, Share2,
+  User, Send, Edit3, Save, Trash2, Inbox, Bell, Eye, Check, XCircle,
+  Filter, BookOpen, ChevronRight, PlayCircle, CalendarDays, Megaphone,
+  Hammer, Utensils, Activity, List, AlertOctagon, LayoutGrid, UserCheck,
+  Dumbbell, GraduationCap, HeartHandshake, Tent
+} from 'lucide-react';
+
+// --- BASE DE DATOS MOCK (100 SOCIOS) ---
+const generateMockDatabase = () => {
+  const names = ["Juan", "Maria", "Pedro", "Ana", "Luis", "Sofia", "Carlos", "Lucia", "Miguel", "Elena", "Diego", "Valentina", "Javier", "Camila", "Fernando", "Martina", "Roberto", "Julia", "Daniel", "Paula"];
+  const lastnames = ["Perez", "Garcia", "Lopez", "Martinez", "Gonzalez", "Rodriguez", "Fernandez", "Torres", "Ramirez", "Flores", "Acosta", "Benitez", "Castro", "Diaz", "Escobar", "Gimenez", "Herrera", "Ibarra", "Juarez", "Luna"];
+  const categories = ["Activo Pleno", "Activo Simple", "Cadete", "Infantil", "Vitalicio", "Socio Interior"];
+  const activities = ["Natación", "Tenis", "Futsal", "Voley", "Hockey", "Básquet", "Ninguna"];
+  
+  return Array.from({ length: 101 }, (_, i) => {
+    const id = i + 1;
+    const name = names[Math.floor(Math.random() * names.length)];
+    const lastname = lastnames[Math.floor(Math.random() * lastnames.length)];
+    return {
+      id: id.toString(),
+      nombre: `${name} ${lastname}`,
+      numero: (90000 + id).toString(),
+      dni: (30000000 + id).toString(),
+      estado: Math.random() > 0.1 ? "ACTIVO - AL DÍA" : "MOROSO (2 Cuotas)",
+      categoria: categories[Math.floor(Math.random() * categories.length)],
+      antiguedad: `${Math.floor(Math.random() * 20) + 1} años`,
+      saldo: Math.random() > 0.8 ? -15000 : 0,
+      actividad: activities[Math.floor(Math.random() * activities.length)],
+      domicilio: `Av. La Plata ${1700 + id}, CABA`,
+      // Estructura Grupo Familiar (según PDF)
+      grupoFamiliar: Math.random() > 0.7 ? [
+          { nombre: `Hijo/a ${lastname}`, relacion: "Hijo/a", nro: (99000+id).toString(), estado: "Activo" },
+          { nombre: `Pareja ${lastname}`, relacion: "Cónyuge", nro: (99500+id).toString(), estado: "Activo" }
+      ] : [],
+      servicios: Math.random() > 0.5 ? ["Débito Automático"] : [],
+      estadio: {
+        sector: Math.random() > 0.5 ? "Popular Local" : "Platea Sur",
+        bloque: "A",
+        fila: Math.floor(Math.random() * 20),
+        asiento: Math.floor(Math.random() * 100),
+        puerta: Math.random() > 0.5 ? "10" : "4",
+      },
+      cochera: Math.random() > 0.9 ? { asignada: true, sector: "Playón A", numero: id } : { asignada: false },
+      canje: Math.random() > 0.3 ? { estado: "CONFIRMADO", partido: "Próximo", qr_token: `QR-${id}` } : { estado: "PENDIENTE" }
+    };
+  });
+};
+
+const App = () => {
+  // --- ESTADOS ---
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null); 
+  const [loginForm, setLoginForm] = useState({ user: '', pass: '' });
+  const [loginError, setLoginError] = useState('');
+  const [database] = useState(generateMockDatabase()); 
+  
+  // Datos del Plan Director
+  const [directorPlan, setDirectorPlan] = useState({
+    phase: "Fase 1: Estabilización",
+    status: "En curso (Semana 2)",
+    riskLevel: "Alto (Pre-Partido)",
+    nextMatch: "vs Huracán (08 Feb)",
+    focus: "Control de Daños & Wiki v1"
+  });
+
+  // --- DATOS GLOBALES (CMS) ---
+  const [news, setNews] = useState({
+    title: "¡Venta de Abonos 2026 Habilitada!",
+    content: "Ya se encuentra disponible la renovación de Tu Lugar con 10% OFF pagando en efectivo en Sede Av. La Plata.",
+    type: "info"
+  });
+
+  const [matches, setMatches] = useState([
+    { id: 1, rival: "Estudiantes (RC)", torneo: "Copa LPF", fecha: "19/02 21:15", precios: { pop: 15000, platea: 45000 } },
+    { id: 2, rival: "Instituto", torneo: "Copa LPF", fecha: "24/02 18:00", precios: { pop: 15000, platea: 40000 } },
+    { id: 3, rival: "Independiente", torneo: "Clásico", fecha: "07/03 19:15", precios: { pop: 20000, platea: 60000 }, highlight: true },
+  ]);
+
+  // --- ESPACIOS COMUNES (MOCK) ---
+  const [commonSpaces, setCommonSpaces] = useState([
+    { id: 'q1', name: 'Quincho Mayor', type: 'Social', capacity: 150, status: 'Disponible', price: 50000, location: 'Ciudad Deportiva' },
+    { id: 'q2', name: 'Quincho Tenis', type: 'Social', capacity: 50, status: 'Ocupado', price: 30000, location: 'Ciudad Deportiva' },
+    { id: 't1', name: 'Cancha Tenis 1', type: 'Deportivo', capacity: 4, status: 'Disponible', price: 8000, location: 'Ciudad Deportiva' },
+    { id: 't2', name: 'Cancha Tenis 2', type: 'Deportivo', capacity: 4, status: 'Mantenimiento', price: 8000, location: 'Ciudad Deportiva' },
+    { id: 'pando', name: 'Polideportivo Pando', type: 'Estadio', capacity: 2000, status: 'Reservado (Futsal)', price: 0, location: 'Boedo' },
+    { id: 'sum', name: 'SUM Vitalicios', type: 'Social', capacity: 80, status: 'Disponible', price: 40000, location: 'Boedo' },
+  ]);
+
+  const [activeTab, setActiveTab] = useState('inicio');
+  const [copiedId, setCopiedId] = useState(null);
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResult, setSearchResult] = useState(null);
+  const [showMemberProfile, setShowMemberProfile] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Modales
+  const [ticketModal, setTicketModal] = useState(null); 
+  const [generatedTicket, setGeneratedTicket] = useState(null); 
+  const [paymentModal, setPaymentModal] = useState(null); 
+  const [spaceModal, setSpaceModal] = useState(null); // Modal para espacios
+
+  // Inbox Mock
+  const [inboxMessages, setInboxMessages] = useState([
+    { id: 1, channel: 'whatsapp', user: 'Socio #90005', text: 'Hola, quiero adherir al débito', time: '10:05', unread: true },
+    { id: 2, channel: 'email', user: 'Maria Garcia', text: 'Solicito baja por mudanza.', time: '09:45', unread: true },
+  ]);
+  const [selectedMessage, setSelectedMessage] = useState(null);
+  const [replyText, setReplyText] = useState('');
+
+  const WHATSAPP_NUMBER = "+54 9 11 5333-6237";
+  const SHIELD_URL = "https://upload.wikimedia.org/wikipedia/commons/7/7b/Escudo_del_Club_Atl%C3%A9tico_San_Lorenzo_de_Almagro.svg";
+
+  // --- SCRIPTS Y WIKI ---
+  const scripts = {
+    whatsapp: [
+      { id: 'ws1', title: 'Bienvenida (Cercanía)', text: `¡Hola, Cuervo/a! 💙❤️ Qué alegría darte la bienvenida oficial. Ya sos parte de esta familia. Tu trámite de alta está completo y ya podés disfrutar del Club. Cualquier duda, estoy acá para ayudarte.` },
+      { id: 'ws2', title: 'Alta Web (Autogestión)', text: `Para asociarte sin moverte de casa, ingresá acá: botm.cc/alta. Es rápido, seguro y empezás a disfrutar los beneficios hoy mismo.` },
+      { id: 'ws3', title: 'Gestión de Mora (Empatía)', text: `Hola, te escribimos para ayudarte a regularizar tu situación. Queremos que sigas siendo parte. Tenemos planes especiales de 3 y 6 cuotas sin interés. ¿Te cuento más?` },
+      { id: 'ws4', title: 'Zona de Débito (Tranquilidad)', text: `¡Quedate tranquilo! 🛑 Si en MiCASLA ves "Pedido por débito" en rojo, es solo un aviso de que el cobro está en proceso bancario. Tu carnet está habilitado y podés entrar a la cancha sin problemas.` },
+      { id: 'ws5', title: 'Error de Cobro (Resolución)', text: `Te pedimos disculpas por el inconveniente. Ya detectamos el error administrativo. No te preocupes, gestionamos el reintegro inmediato o te dejamos el saldo a favor, lo que prefieras. Gracias por la paciencia.` },
+      { id: 'ws6', title: 'Info Carnet', text: `💳 *Carnet Físico*\nCosto Alta/Renovación: $15.000.\nReposición (Pérdida): $19.000.\nPor Robo: SIN CARGO (con denuncia policial).` },
+      { id: 'ws7', title: 'Acceso Pando/Deportes', text: `Para ingresar al Pando o actividades deportivas, recordá tener tu cuota al día y el apto médico vigente. Podés consultar el estado de tu apto en la solapa 'Mis Turnos' de la web.` },
+      { id: 'ws8', title: 'Abono Familiar', text: `El Abono Familiar cubre a todo tu grupo (Titular + Adicionales). Podés gestionarlo desde la sección 'Abono Familiar' en tu perfil o te ayudo por acá a vincular los carnets.` }
+    ],
+    email: [
+        { id: 'em1', title: 'Resolución Reclamo', text: "Estimado/a Socio/a:\n\nNos ponemos en contacto para informarte que hemos resuelto el inconveniente reportado. Agradecemos tu comprensión y compromiso con San Lorenzo.\n\nAtentamente,\nAtención al Socio." },
+        { id: 'em2', title: 'Confirmación Baja', text: "Confirmamos la recepción de tu solicitud. Lamentamos que tengas que dejar el Club momentáneamente. Tus puertas quedan abiertas y tu antigüedad resguardada según estatuto." }
+    ]
+  };
+
+  const requestsKB = [
+    { id: 1, tag: "Administrativo", title: "Error en Ranking", question: "¿Fuiste al partido y no sumaste?", solution: "Verificar molinete y cargar presente manual." },
+    { id: 2, tag: "Espacios", title: "Reserva Quincho", question: "¿Cómo reservo?", solution: "Verificar disponibilidad en módulo 'Espacios', bloquear fecha y cobrar seña." },
+    { id: 3, tag: "Accesos", title: "Carnet no pasa", question: "¿Luz roja en molinete?", solution: "Verificar pago o chip dañado." }
+  ];
+
+  const tramitesGuia = [
+    { title: "Alta de Socio", steps: ["Cargar datos personales", "Seleccionar categoría", "Adjuntar DNI frente/dorso", "Pagar inscripción"], action: "Iniciar Alta" },
+    { title: "Adhesión Débito", steps: ["Buscar socio", "Ir a 'Pagos Extras'", "Cargar tarjeta", "Validar $1"], action: "Adherir" },
+    { title: "Renovación Carnet", steps: ["Verificar estado al día", "Cobrar $15.000", "Tomar foto nueva", "Imprimir"], action: "Renovar" },
+    { title: "Baja Voluntaria", steps: ["Validar identidad", "Ofrecer alternativa económica", "Registrar motivo", "Confirmar baja"], action: "Procesar Baja" },
+    { title: "Cambio Categoría", steps: ["Verificar edad", "Calcular prorrateo", "Actualizar en sistema"], action: "Cambiar" },
+  ];
+
+  const faqs = [
+    { q: "¿Qué es 'Zona de Débito'?", a: "La orden de cobro fue enviada al banco. El socio está habilitado para ingresar aunque figure en rojo momentáneamente." },
+    { q: "¿Pagan menores?", a: "Menores de 6 años (hijos de socio) NO pagan cuota. Solo abonan el costo del carnet." },
+    { q: "¿Costo reposición?", a: "Extravío: $19.000. Deterioro: $15.000. ROBO: GRATIS presentando la denuncia policial." },
+    { q: "¿Horarios Sede?", a: "Boedo: L-V 8-20:30, Sáb 8-17:30. Ciudad: L-V 9-20:30, Sáb 9-18. Dom/Fer Cerrado." },
+  ];
+
+  // --- ESTRUCTURA "ESPEJO" DEL PORTAL VIGENTE (Tarjetas) ---
+  const portalModules = [
+    { id: 'datos', label: 'Mis Datos', desc: 'Gestión de datos personales y familiares', icon: User },
+    { id: 'pagos_pend', label: 'Mis Pagos Pendientes', desc: 'Aboná tus saldos pendientes', icon: DollarSign },
+    { id: 'carrito', label: 'Mi Carrito', desc: 'Seleccioná y pagá nuevas actividades', icon:  Receipt},
+    { id: 'abonos', label: 'Mis Abonos', desc: 'Comprá o renová abonos', icon: CreditCard },
+    { id: 'familiar', label: 'Abono Familiar', desc: 'Gestión grupo familiar (4x3)', icon: Users },
+    { id: 'debitos', label: 'Débitos y Actividades', desc: 'Manejo de débito automático', icon: CardIcon },
+    { id: 'turnos', label: 'Mis Turnos', desc: 'Reserva de espacios deportivos', icon: Clock },
+    { id: 'historial', label: 'Pagos Realizados', desc: 'Consulta detalle histórico', icon: FileText },
+    { id: 'servicios', label: 'Mis Servicios', desc: 'Mis servicios contratados', icon: Dumbbell },
+    { id: 'entradas', label: 'Mis Entradas', desc: 'Adquirir entradas a partidos', icon: Ticket },
+  ];
+
+  // --- FUNCIONES ---
+  const handleLogin = (e) => {
+    e.preventDefault();
+    const { user, pass } = loginForm;
+    if (user === 'admin' && pass === 'admin') setCurrentUser({ name: 'Administrador General', role: 'admin', avatar: 'AD' });
+    else if (user === 'super' && pass === 'super') setCurrentUser({ name: 'Supervisor Tarde', role: 'supervisor', avatar: 'SV' });
+    else if (user === 'oper' && pass === 'oper') setCurrentUser({ name: 'Operador Caja 4', role: 'operator', avatar: 'OP' });
+    else { setLoginError('Credenciales inválidas'); return; }
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => { setIsAuthenticated(false); setCurrentUser(null); setLoginForm({ user: '', pass: '' }); setActiveTab('inicio'); };
+
+  const handleSearch = () => {
+    const found = database.find(s => 
+      s.numero === searchQuery || 
+      s.dni === searchQuery || 
+      s.nombre.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    
+    if (found) {
+      setSearchResult(found);
+      setShowMemberProfile(true);
+    } else {
+      alert("Socio no encontrado en la base de datos.");
+      setSearchResult(null);
+    }
+    setIsMobileMenuOpen(false);
+  };
+
+  const copyToClipboard = (text, id) => {
+    const textArea = document.createElement("textarea"); textArea.value = text; document.body.appendChild(textArea); textArea.select(); document.execCommand('copy'); document.body.removeChild(textArea); setCopiedId(id); setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleGenerateTicket = (type) => {
+    const price = type === 'popular' ? ticketModal.precios.pop : ticketModal.precios.platea;
+    setGeneratedTicket({
+      match: ticketModal.rival,
+      date: ticketModal.fecha,
+      sector: type === 'popular' ? 'Popular Local' : 'Platea Sur',
+      price: price,
+      qrCode: `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=CASLA-TICKET-${Math.floor(Math.random() * 10000)}`
+    });
+  };
+
+  const handleSpaceAction = (space) => {
+      setSpaceModal(space);
+  };
+
+  if (!isAuthenticated) return (
+      <div className="min-h-screen bg-[#002D58] flex flex-col items-center justify-center p-4 relative">
+        <div className="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md text-center">
+          <div className="flex justify-center mb-6"><div className="w-24 h-24 bg-white rounded-full p-2 shadow-lg border-4 border-slate-100"><img src={SHIELD_URL} className="w-full h-full object-contain" /></div></div>
+          <h2 className="text-2xl font-black text-blue-900 mb-1">PORTAL SOCIOS 5.1</h2>
+          <p className="text-slate-500 text-sm mb-8 font-bold">ACCESO CORPORATIVO</p>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input type="text" value={loginForm.user} onChange={(e) => setLoginForm({...loginForm, user: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl font-bold text-slate-800" placeholder="Usuario (admin/super/oper)" />
+            <input type="password" value={loginForm.pass} onChange={(e) => setLoginForm({...loginForm, pass: e.target.value})} className="w-full bg-slate-50 p-4 rounded-xl font-bold text-slate-800" placeholder="Contraseña" />
+            {loginError && <p className="text-red-500 text-xs font-bold bg-red-50 p-2 rounded-lg">{loginError}</p>}
+            <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white py-4 rounded-xl font-black tracking-widest shadow-lg">INGRESAR</button>
+          </form>
+        </div>
+      </div>
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 relative overflow-x-hidden">
+      {/* --- HEADER --- */}
+      <header className="bg-[#002D58] text-white shadow-xl sticky top-0 z-50 border-b-4 border-[#E30613]">
+        <div className="max-w-7xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="md:hidden p-2 hover:bg-white/10 rounded-lg"><Menu size={24}/></button>
+            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center p-1 cursor-pointer" onClick={() => setActiveTab('inicio')}><img src={SHIELD_URL} className="w-full h-full object-contain" /></div>
+            <div className="leading-tight"><h1 className="text-sm md:text-lg font-black uppercase tracking-tight">PORTAL <span className="text-red-500">ADM</span></h1><p className="hidden md:block text-[10px] tracking-widest uppercase opacity-70 font-bold">{currentUser.role.toUpperCase()}</p></div>
+          </div>
+          <div className="hidden md:flex items-center gap-2 bg-blue-950/50 p-2 rounded-xl border border-blue-800">
+            <input type="text" placeholder="DNI, N° Socio o Apellido..." className="bg-transparent text-sm w-64 outline-none px-2 text-white placeholder-blue-300" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSearch()}/>
+            <button onClick={handleSearch} className="bg-red-600 hover:bg-red-700 p-2 rounded-lg shadow-lg"><Search size={18} /></button>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex flex-col text-right mr-2"><span className="text-xs font-bold">{currentUser.name}</span><span className="text-[10px] opacity-70 uppercase">{currentUser.role}</span></div>
+            <div className="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center font-bold text-xs border border-blue-400">{currentUser.avatar}</div>
+            <button onClick={handleLogout} className="p-2 hover:bg-red-600/20 rounded-lg text-red-400"><LogOut size={20}/></button>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto w-full flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 z-10">
+        {/* --- SIDEBAR --- */}
+        <aside className={`${isMobileMenuOpen ? 'flex' : 'hidden'} md:flex flex-col gap-2 w-full md:w-64 flex-shrink-0 animate-in slide-in-from-left duration-200`}>
+          <div className="bg-white md:bg-transparent rounded-2xl shadow-xl md:shadow-none p-2 md:p-0 space-y-1">
+            <button onClick={() => {setActiveTab('inicio'); setShowMemberProfile(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold ${activeTab === 'inicio' ? 'bg-[#002D58] text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}><Home size={18} /> Dashboard</button>
+            <button onClick={() => setActiveTab('inbox')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold ${activeTab === 'inbox' ? 'bg-[#002D58] text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}>
+                <div className="relative"><Inbox size={18} />{inboxMessages.filter(m => m.unread).length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>}</div> Bandeja Entrada
+            </button>
+            
+            <div className="my-2 border-t border-slate-200/50"></div>
+            <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Operaciones Ciudad</p>
+            <button onClick={() => setActiveTab('espacios')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold ${activeTab === 'espacios' ? 'bg-[#002D58] text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}><Tent size={18} /> Gestión de Espacios</button>
+
+            <div className="my-2 border-t border-slate-200/50"></div>
+            <p className="px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Atención Socio</p>
+            {['alta', 'entradas', 'tramites', 'scripts', 'faq'].map(tab => (
+                <button key={tab} onClick={() => {setActiveTab(tab); setShowMemberProfile(false);}} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold capitalize ${activeTab === tab ? 'bg-[#002D58] text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}>
+                    {tab === 'alta' ? <UserPlus size={18} /> : tab === 'entradas' ? <Ticket size={18}/> : tab === 'tramites' ? <ClipboardCheck size={18}/> : tab === 'scripts' ? <MessageSquare size={18}/> : <HelpCircle size={18}/>}
+                    {tab === 'faq' ? 'Ayuda / FAQ' : tab === 'alta' ? 'Alta Express' : tab}
+                </button>
+            ))}
+            
+            {(currentUser.role === 'admin' || currentUser.role === 'supervisor') && (
+                <>
+                    <div className="my-2 border-t border-slate-200/50"></div>
+                    <p className="px-4 text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Gestión</p>
+                    <button onClick={() => setActiveTab('gestion')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold ${activeTab === 'gestion' ? 'bg-red-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-200'}`}><BarChart3 size={18} /> Tablero Plan Director</button>
+                </>
+            )}
+          </div>
+        </aside>
+
+        <main className="flex-1 min-w-0">
+            {/* ÚLTIMA NOVEDAD (Banner CMS) */}
+            <div className={`mb-6 p-4 rounded-2xl border-l-4 shadow-sm flex items-start gap-4 ${news.type === 'alert' ? 'bg-red-50 border-red-500 text-red-900' : 'bg-blue-50 border-blue-500 text-blue-900'}`}>
+                <Bell className="flex-shrink-0 animate-bounce" />
+                <div><h3 className="font-black uppercase text-sm">{news.title}</h3><p className="text-sm opacity-90">{news.content}</p></div>
+            </div>
+
+            {/* --- DASHBOARD TIPO PORTAL VIGENTE (TARJETAS) --- */}
+            {activeTab === 'inicio' && !showMemberProfile && (
+                <div className="space-y-6 animate-in fade-in">
+                  <h2 className="text-xl font-black text-blue-900 uppercase">Gestión por Módulo (Vista Operador)</h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                     {portalModules.map((mod) => (
+                       <button 
+                         key={mod.id} 
+                         onClick={() => alert(`Acceso directo a ${mod.label} - Funcionalidad en desarrollo para v5.1`)}
+                         className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-400 transition-all text-left flex flex-col justify-between h-32 group"
+                       >
+                         <mod.icon size={24} className="text-blue-900 group-hover:text-red-500 transition-colors"/>
+                         <div>
+                           <p className="font-black text-slate-800 text-sm">{mod.label}</p>
+                           <p className="text-[10px] text-slate-500 leading-tight mt-1">{mod.desc}</p>
+                         </div>
+                       </button>
+                     ))}
+                  </div>
+
+                  {/* Estado del Plan Director */}
+                  <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-lg mt-8 relative overflow-hidden">
+                     <div className="relative z-10 flex flex-col md:flex-row justify-between md:items-end gap-4">
+                        <div>
+                           <div className="flex items-center gap-2 mb-2">
+                              <HeartHandshake className="text-red-500"/>
+                              <h3 className="text-lg font-bold uppercase tracking-widest">Plan Director 2026</h3>
+                           </div>
+                           <p className="text-3xl font-black text-blue-300 mb-1">{directorPlan.phase}</p>
+                           <p className="text-sm opacity-80">Estado: {directorPlan.status} • Foco: {directorPlan.focus}</p>
+                        </div>
+                        <div className="bg-white/10 p-3 rounded-xl backdrop-blur-sm border border-white/10">
+                           <p className="text-[10px] uppercase font-bold tracking-widest text-slate-400">Nivel de Riesgo Operativo</p>
+                           <p className="text-xl font-black text-orange-400">{directorPlan.riskLevel}</p>
+                           <p className="text-xs">Próx: {directorPlan.nextMatch}</p>
+                        </div>
+                     </div>
+                  </div>
+                </div>
+            )}
+
+            {/* --- GESTIÓN DE ESPACIOS COMUNES (NUEVO) --- */}
+            {activeTab === 'espacios' && (
+                <div className="space-y-6 animate-in slide-in-from-right">
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-black text-blue-900 flex items-center gap-2"><Tent size={24} className="text-blue-600"/> Administración de Espacios</h2>
+                            <div className="flex gap-2">
+                                <button className="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold">Todos</button>
+                                <button className="bg-white border border-slate-200 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold">Social</button>
+                                <button className="bg-white border border-slate-200 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold">Deportivo</button>
+                            </div>
+                        </div>
+                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {commonSpaces.map(space => (
+                                <div key={space.id} className="border border-slate-100 rounded-2xl p-4 hover:shadow-md transition-all bg-white flex flex-col justify-between h-full">
+                                    <div>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${space.status === 'Disponible' ? 'bg-green-100 text-green-700' : space.status === 'Ocupado' || space.status.includes('Reservado') ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                                                {space.status}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 font-bold">{space.type}</span>
+                                        </div>
+                                        <h3 className="font-bold text-slate-800 text-lg">{space.name}</h3>
+                                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-1"><MapPin size={12}/> {space.location}</p>
+                                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-1"><Users size={12}/> Capacidad: {space.capacity}</p>
+                                    </div>
+                                    <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center">
+                                        <p className="font-black text-blue-900">{space.price > 0 ? `$${space.price.toLocaleString()}` : 'Sin cargo'}</p>
+                                        <button 
+                                            onClick={() => handleSpaceAction(space)}
+                                            className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors"
+                                        >
+                                            Gestionar
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- PERFIL DE SOCIO 360 --- */}
+            {showMemberProfile && searchResult && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="flex justify-between items-center mb-2">
+                        <button onClick={() => setShowMemberProfile(false)} className="text-sm font-bold text-slate-500 hover:text-blue-900 flex items-center gap-2">← Volver</button>
+                        <span className="text-xs bg-slate-200 px-2 py-1 rounded text-slate-600 font-bold">Vista 360°</span>
+                    </div>
+                    
+                    {/* Header Perfil */}
+                    <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-blue-900 flex flex-col md:flex-row justify-between items-start gap-4">
+                        <div className="flex gap-4 items-center">
+                            <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center text-3xl font-black text-slate-300">{searchResult.nombre.charAt(0)}</div>
+                            <div>
+                                <h2 className="text-xl md:text-2xl font-black text-blue-900 uppercase">{searchResult.nombre}</h2>
+                                <div className="flex gap-4 mt-1 text-sm text-slate-600">
+                                   <span>#{searchResult.numero}</span>
+                                   <span className="font-bold">{searchResult.categoria}</span>
+                                   <span className={`font-bold ${searchResult.estado.includes('ACTIVO') ? 'text-green-600' : 'text-red-600'}`}>{searchResult.estado}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] font-black text-slate-400 uppercase">Saldo Cuenta</p>
+                            <p className={`text-3xl font-black ${searchResult.saldo < 0 ? 'text-red-600' : 'text-green-600'}`}>$ {searchResult.saldo}</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Columna 1: Accesos */}
+                        <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+                            <h3 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-widest border-b border-blue-800 pb-2"><MapPin size={16} className="text-red-500"/> Accesos Habilitados</h3>
+                            <div className="space-y-3">
+                                <div className="flex justify-between text-sm"><span className="opacity-70">Estadio</span><span className="font-bold">{searchResult.estadio.sector}</span></div>
+                                <div className="flex justify-between text-sm"><span className="opacity-70">Puerta</span><span className="font-bold text-orange-400">P{searchResult.estadio.puerta}</span></div>
+                                <div className="flex justify-between text-sm"><span className="opacity-70">Cochera</span><span className="font-bold">{searchResult.cochera.asignada ? searchResult.cochera.sector : 'NO'}</span></div>
+                                <div className="mt-4 pt-4 border-t border-white/10 text-center">
+                                   <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-black ${searchResult.canje.estado === 'CONFIRMADO' ? 'bg-green-600' : 'bg-slate-700'}`}>
+                                      {searchResult.canje.estado === 'CONFIRMADO' ? <CheckCircle2 size={12}/> : <XCircle size={12}/>} 
+                                      {searchResult.canje.estado === 'CONFIRMADO' ? 'INGRESO OK' : 'NO HABILITADO'}
+                                   </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Columna 2: Grupo Familiar */}
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                            <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2 text-sm uppercase tracking-widest"><Users size={16}/> Grupo Familiar</h3>
+                            {searchResult.grupoFamiliar.length > 0 ? (
+                                <div className="space-y-3">
+                                    {searchResult.grupoFamiliar.map((fam, idx) => (
+                                        <div key={idx} className="flex justify-between items-center p-2 bg-slate-50 rounded-lg">
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-700">{fam.nombre}</p>
+                                                <p className="text-[10px] text-slate-500">{fam.relacion} • #{fam.nro}</p>
+                                            </div>
+                                            <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold">{fam.estado}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-slate-400 italic">Sin grupo familiar asociado.</p>
+                            )}
+                            <button className="w-full mt-4 text-xs font-bold text-blue-600 border border-blue-200 rounded-lg py-2 hover:bg-blue-50">+ Vincular Familiar</button>
+                        </div>
+
+                        {/* Columna 3: Servicios Activos */}
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                            <h3 className="font-bold text-blue-900 mb-4 flex items-center gap-2 text-sm uppercase tracking-widest"><Activity size={16}/> Actividad & Servicios</h3>
+                            <div className="space-y-2">
+                                <div className="p-2 border border-slate-100 rounded-lg flex justify-between items-center">
+                                    <span className="text-xs font-bold text-slate-600">Actividad</span>
+                                    <span className="text-xs font-black text-blue-900">{searchResult.actividad}</span>
+                                </div>
+                                {searchResult.servicios.map((s, i) => (
+                                    <div key={i} className="p-2 border border-slate-100 rounded-lg flex justify-between items-center">
+                                        <span className="text-xs font-bold text-slate-600">Servicio</span>
+                                        <span className="text-xs font-black text-green-600">{s}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- ALTA EXPRESS --- */}
+            {activeTab === 'alta' && (
+                <div className="space-y-6 animate-in slide-in-from-right">
+                    <div className="bg-blue-900 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+                        <div className="relative z-10"><h2 className="text-2xl font-black mb-1 uppercase italic">Alta Express</h2><p className="opacity-80 text-sm">Formulario de alta inmediata. Recordá validar DNI físico.</p></div>
+                        <UserPlus className="absolute right-4 top-4 text-white opacity-10 w-24 h-24" />
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+                            <h3 className="font-bold text-blue-900">Datos Personales</h3>
+                            <input type="text" placeholder="DNI" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none"/>
+                            <div className="grid grid-cols-2 gap-4">
+                                <input type="text" placeholder="Nombre" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none"/>
+                                <input type="text" placeholder="Apellido" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none"/>
+                            </div>
+                            <input type="email" placeholder="Email" className="w-full bg-slate-50 p-3 rounded-xl text-sm outline-none"/>
+                        </div>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                            <div>
+                                <h3 className="font-bold text-blue-900 mb-4">Pagos & Adhesión</h3>
+                                <div className="space-y-2 mb-4">
+                                    <button className="w-full p-3 border border-blue-100 rounded-xl flex justify-between items-center text-sm font-bold text-blue-900 hover:bg-blue-50"><span className="flex items-center gap-2"><CreditCard size={16}/> Adherir Débito Automático</span><CheckCircle2 size={16} className="text-green-500"/></button>
+                                </div>
+                                <div className="bg-slate-100 p-4 rounded-xl text-sm space-y-2">
+                                    <div className="flex justify-between"><span>Cuota:</span><span className="font-bold">$33.500</span></div>
+                                    <div className="flex justify-between"><span>Carnet:</span><span className="font-bold">$15.000</span></div>
+                                    <div className="border-t pt-2 font-black text-blue-900 flex justify-between"><span>Total:</span><span>$48.500</span></div>
+                                </div>
+                            </div>
+                            <button className="w-full bg-green-600 text-white py-3 rounded-xl font-bold mt-4 shadow-lg hover:bg-green-700">Confirmar Alta & Cobrar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- ENTRADAS --- */}
+            {activeTab === 'entradas' && !ticketModal && (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in slide-in-from-right">
+                    {matches.map(match => (
+                      <div key={match.id} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 relative overflow-hidden">
+                         <p className="text-xs font-bold text-slate-400 uppercase mb-2">{match.torneo}</p>
+                         <h3 className="text-xl font-black text-blue-900 mb-1">VS {match.rival}</h3>
+                         <p className="text-sm font-medium text-slate-600 mb-6 flex items-center gap-2"><Calendar size={14}/> {match.fecha}</p>
+                         <button onClick={() => setTicketModal(match)} className="w-full bg-blue-600 text-white px-4 py-3 rounded-xl text-sm font-bold shadow-md hover:bg-blue-700">Vender Ticket</button>
+                      </div>
+                    ))}
+                </div>
+            )}
+
+            {/* --- TRAMITES (Guía Completa) --- */}
+            {activeTab === 'tramites' && (
+                <div className="grid md:grid-cols-2 gap-6 animate-in fade-in">
+                    {tramitesGuia.map((t, i) => (
+                        <div key={i} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+                            <h3 className="font-black text-blue-900 mb-4 flex justify-between items-center">{t.title} <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs">Guía</span></h3>
+                            <ul className="space-y-3 relative">
+                                <div className="absolute left-2.5 top-2 bottom-2 w-0.5 bg-slate-100"></div>
+                                {t.steps.map((step, idx) => (
+                                    <li key={idx} className="flex gap-3 relative items-center">
+                                        <div className="w-5 h-5 rounded-full bg-white border-2 border-blue-900 text-blue-900 font-bold text-[10px] flex items-center justify-center z-10">{idx + 1}</div>
+                                        <p className="text-sm text-slate-600">{step}</p>
+                                    </li>
+                                ))}
+                            </ul>
+                            <button className="w-full mt-4 text-xs font-bold text-blue-600 bg-blue-50 py-2 rounded-lg hover:bg-blue-100">{t.action}</button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* --- SCRIPTS DE VÍNCULO (Cercanía) --- */}
+            {(activeTab === 'scripts' || activeTab === 'faq') && (
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 animate-in fade-in">
+                    <h2 className="text-xl font-black text-blue-900 mb-6 flex items-center gap-2">
+                        {activeTab === 'scripts' ? <MessageSquare/> : <HelpCircle/>} 
+                        {activeTab === 'scripts' ? 'Scripts de Vínculo y Cercanía' : 'Preguntas Frecuentes'}
+                    </h2>
+                    
+                    {activeTab === 'scripts' ? (
+                        <div className="grid md:grid-cols-2 gap-4 h-[600px] overflow-y-auto pr-2">
+                            {scripts.whatsapp.map(s => (
+                                <button key={s.id} onClick={() => copyToClipboard(s.text, s.id)} className="text-left p-4 rounded-xl border border-slate-100 hover:border-green-400 hover:bg-green-50 transition-all group relative">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="font-bold text-xs text-green-700 uppercase tracking-widest">{s.title}</span>
+                                        <Copy size={14} className="opacity-0 group-hover:opacity-100 text-green-600"/>
+                                    </div>
+                                    <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 group-hover:text-slate-800">{s.text}</p>
+                                    {copiedId === s.id && <div className="absolute inset-0 bg-green-600/90 rounded-xl flex items-center justify-center text-white font-bold animate-in fade-in">¡Copiado!</div>}
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-4 h-[600px] overflow-y-auto pr-2">
+                            {faqs.map((f, i) => (
+                                <div key={i} className="p-4 bg-slate-50 rounded-xl">
+                                    <p className="font-bold text-blue-900 mb-1 flex items-center gap-2"><HelpCircle size={16} className="text-red-500"/> {f.q}</p>
+                                    <p className="text-sm text-slate-700 pl-6">{f.a}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* --- GESTIÓN PLAN DIRECTOR (ADMIN/SUPER) --- */}
+            {activeTab === 'gestion' && (currentUser.role === 'admin' || currentUser.role === 'supervisor') && (
+                <div className="space-y-6 animate-in fade-in">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-green-500">
+                            <p className="text-[10px] uppercase font-black text-slate-400">Objetivo NPS</p>
+                            <div className="flex items-end gap-2">
+                                <p className="text-3xl font-black text-green-600">8.5</p>
+                                <span className="text-xs text-slate-400 mb-1">/ 10</span>
+                            </div>
+                            <p className="text-xs text-slate-500 mt-1">Actual: 7.2 (↑)</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-blue-500">
+                            <p className="text-[10px] uppercase font-black text-slate-400">SLA Respuesta</p>
+                            <p className="text-3xl font-black text-blue-900">4h</p>
+                            <p className="text-xs text-slate-500 mt-1">Meta: &lt; 24hs</p>
+                        </div>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border-t-4 border-red-500">
+                            <p className="text-[10px] uppercase font-black text-slate-400">Backlog</p>
+                            <p className="text-3xl font-black text-red-600">12</p>
+                            <p className="text-xs text-slate-500 mt-1">Casos pendientes</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* --- MODAL TICKET QR --- */}
+            {ticketModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+                  <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden relative">
+                    <button onClick={() => { setTicketModal(null); setGeneratedTicket(null); }} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10"><X size={24}/></button>
+                    <div className="bg-blue-900 p-6 text-white text-center relative overflow-hidden">
+                       <img src={SHIELD_URL} className="absolute -left-4 -bottom-4 w-24 h-24 opacity-10" alt="bg"/>
+                       <h3 className="text-xl font-black uppercase tracking-widest mb-1">Boletería Digital</h3>
+                       <p className="text-blue-200 text-sm">{ticketModal.rival} - {ticketModal.fecha}</p>
+                    </div>
+                    <div className="p-6">
+                      {!generatedTicket ? (
+                        <div className="space-y-4">
+                           <p className="text-sm font-bold text-slate-500 uppercase tracking-widest text-center mb-4">Seleccionar Ubicación</p>
+                           <button onClick={() => handleGenerateTicket('popular')} className="w-full flex justify-between items-center p-4 border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                              <div className="text-left"><p className="font-black text-slate-800 group-hover:text-blue-900">POPULAR</p><p className="text-xs text-slate-500">Cabecera Local</p></div><p className="font-black text-xl text-blue-900">${ticketModal.precios.pop}</p>
+                           </button>
+                           <button onClick={() => handleGenerateTicket('platea')} className="w-full flex justify-between items-center p-4 border-2 border-slate-100 rounded-2xl hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                              <div className="text-left"><p className="font-black text-slate-800 group-hover:text-blue-900">PLATEA SUR</p><p className="text-xs text-slate-500">Sector Preferencial</p></div><p className="font-black text-xl text-blue-900">${ticketModal.precios.platea}</p>
+                           </button>
+                        </div>
+                      ) : (
+                        <div className="text-center animate-in zoom-in-50 duration-300">
+                           <div className="bg-green-50 text-green-800 px-4 py-2 rounded-full text-xs font-bold inline-flex items-center gap-2 mb-6"><CheckCircle2 size={14}/> TICKET EMITIDO</div>
+                           <div className="bg-white p-4 border-2 border-dashed border-slate-300 rounded-2xl mb-6 relative">
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Escanear en Molinete</p>
+                              <div className="bg-slate-900 p-4 inline-block rounded-xl mb-2"><QrCode size={120} className="text-white"/></div>
+                              <p className="font-black text-blue-900 text-lg uppercase">{generatedTicket.sector}</p>
+                              <p className="text-sm font-medium text-slate-500 mb-1">{generatedTicket.match}</p>
+                           </div>
+                           <button onClick={shareOnWhatsApp} className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg transition-all"><Share2 size={18}/> Enviar por WhatsApp</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+            )}
+
+            {paymentModal && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+                  <div className="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-2 bg-green-500"></div>
+                    <h3 className="text-xl font-black text-blue-900 mb-2">Confirmar Cobro</h3>
+                    <p className="text-slate-600 text-sm mb-6">Estás por cobrar <span className="font-bold text-slate-800">{paymentModal.nombre}</span><br/>Monto: <span className="font-bold text-green-600 text-lg">${paymentModal.precio.toLocaleString()}</span></p>
+                    <div className="flex gap-3">
+                      <button onClick={() => setPaymentModal(null)} className="flex-1 py-3 rounded-xl border border-slate-200 font-bold text-slate-600 hover:bg-slate-50">Cancelar</button>
+                      <button onClick={() => { setPaymentModal(null); alert("Cobro registrado exitosamente"); }} className="flex-1 py-3 rounded-xl bg-green-600 text-white font-bold hover:bg-green-700 shadow-lg">Confirmar</button>
+                    </div>
+                  </div>
+                </div>
+            )}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default App;

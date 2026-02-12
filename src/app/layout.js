@@ -1,27 +1,27 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Oswald } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
 });
 
 export const metadata = {
-  title: "Portal Administrador CASLA",
-  description: "Sistema de Socios Cuervos 2.0 - Uso Interno",
+  title: "San Lorenzo | Portal de Socios",
+  description: "Plataforma oficial del Club Atlético San Lorenzo de Almagro",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="es" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${oswald.variable} antialiased`}
       >
         <Providers>
           {children}
