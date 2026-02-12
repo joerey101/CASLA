@@ -9,16 +9,22 @@ export const authOptions = {
                 password: { label: "Contraseña", type: "password" }
             },
             async authorize(credentials) {
-                // Legacy Auth Check (matches previous working version)
+                // Legacy Logic - EXACTLY as verify version 7c465c0
                 if (credentials?.username === "admin" && credentials?.password === "casla2024") {
-                    return { id: "1", name: "Admin CASLA", email: "admin@casla.com.ar", role: "admin" };
+                    return {
+                        id: "1",
+                        name: "Admin CASLA",
+                        email: "admin@casla.com.ar",
+                        role: "admin"
+                    };
                 }
                 return null;
             }
         })
     ],
     pages: {
-        signIn: '/api/auth/signin',
+        signIn: '/', // Home acts as login
+        error: '/api/auth/error',
     },
     callbacks: {
         async jwt({ token, user }) {
@@ -34,8 +40,6 @@ export const authOptions = {
             return session;
         }
     },
-    debug: process.env.NODE_ENV === 'development',
     secret: process.env.NEXTAUTH_SECRET,
     trustHost: true,
 };
-
