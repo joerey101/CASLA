@@ -14,6 +14,11 @@ model Member {
   category      String   // Activo Pleno, Cadete, etc.
   status        String   // ACTIVO - AL DÍA, MOROSO
   seniority     String?  // Antigüedad (e.g. "12 años")
+  avatarUrl     String?  // Foto de Perfil
+  
+  // Digital ID Security
+  qrToken       String?  @unique // Token rotativo para QR
+  qrExpiresAt   DateTime?
   
   // Entitlements (Derechos de acceso)
   seatLocation  String?  // Platea Norte Baja
