@@ -30,15 +30,15 @@ if (!prisma) {
             prisma = new PrismaClient({ adapter });
             console.log('[DB] Connected: SQLite');
         } else {
-            // No URL during build/other env: create client without adapter to avoid crashes
-            prisma = new PrismaClient();
-            console.warn('[DB] No URL found. Client created without adapter (Standard mode).');
+            // No URL during build/other env: do NOT create an invalid client
+            console.warn('[DB] No valid configuration found (missing DATABASE_URL). Prisma disabled for this build step.');
+            prisma = null;
         }
 
         if (prisma) globalForPrisma.prisma = prisma;
     } catch (e) {
         console.warn('[DB] Prisma init warning:', e.message);
-        prisma = new PrismaClient(); // Fallback
+        prisma = null;
     }
 }
 
