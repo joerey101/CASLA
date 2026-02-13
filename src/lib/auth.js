@@ -42,7 +42,8 @@ export const authOptions = {
                         email: "mariano.perez@example.com",
                         role: "member",
                         type: "socio",
-                        memberNumber: "99999"
+                        memberNumber: "99999",
+                        avatarUrl: "/images/avatar_male_casla.png"
                     };
                 }
 

@@ -56,7 +56,7 @@ export default function SocioPage() {
                         email: session.user.email,
                         memberNumber: '85001', dni: '33000000', category: 'Activo Pleno',
                         status: 'ACTIVO - AL DÍA', seniority: '8 años', phone: '+5491155001234',
-                        avatarUrl: '/logos/CASLA_logo.png',
+                        avatarUrl: '/images/avatar_male_casla.png',
                     });
                 });
         }
