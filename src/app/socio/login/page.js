@@ -39,7 +39,7 @@ export default function SocioLoginPage() {
         }}>
             {/* Header / Logo */}
             <div style={{ textAlign: 'center', marginTop: 40, marginBottom: 60 }}>
-                <img src="/logos/emblema.svg" alt="CASLA" style={{ width: 80, height: 80, marginBottom: 20 }} />
+                <img src="/logos/CASLA_logo.png" alt="CASLA" style={{ width: 110, height: 110, marginBottom: 20 }} />
                 <h1 style={{ fontSize: 28, fontWeight: 900, letterSpacing: 1, margin: 0 }}>MI CASLA</h1>
                 <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: 14, marginTop: 8 }}>Portal Oficial de Socios</p>
             </div>
