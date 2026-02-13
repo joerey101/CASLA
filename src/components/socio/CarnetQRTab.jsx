@@ -62,7 +62,7 @@ export default function CarnetQRTab({ member }) {
 
                 {/* Avatar */}
                 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16, position: 'relative' }}>
-                    <img src={member?.avatarUrl || '/images/avatar_male.png'}
+                    <img src={member?.avatarUrl || '/logos/CASLA_logo.png'}
                         alt="avatar" style={{
                             width: 72, height: 72, borderRadius: '50%', border: '3px solid rgba(255,255,255,0.3)',
                             background: 'rgba(255,255,255,0.1)'
