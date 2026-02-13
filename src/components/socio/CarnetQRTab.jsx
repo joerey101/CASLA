@@ -23,7 +23,7 @@ export default function CarnetQRTab({ member }) {
     useEffect(() => { fetchQR(); }, [fetchQR]);
 
     useEffect(() => {
-        if (timeLeft <= 0) { fetchQR(); return; }
+        if (timeLeft <= 0) { setTimeout(fetchQR, 0); return; }
         const t = setTimeout(() => setTimeLeft(prev => prev - 1), 1000);
         return () => clearTimeout(t);
     }, [timeLeft, fetchQR]);

@@ -16,7 +16,7 @@ export default function HomeTab({ member, unreadCount, onNotifications, onEventS
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        setLoading(true);
+        // setLoading(true) is handled by category click
         fetch(`/api/events?category=${category}`)
             .then(r => r.json())
             .then(data => { setEvents(Array.isArray(data) ? data : []); setLoading(false); })
@@ -83,7 +83,7 @@ export default function HomeTab({ member, unreadCount, onNotifications, onEventS
                 {CATEGORIES.map(c => {
                     const active = category === c.id;
                     return (
-                        <button key={c.id} onClick={() => setCategory(c.id)}
+                        <button key={c.id} onClick={() => { setCategory(c.id); setLoading(true); }}
                             style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                                 minWidth: 80, padding: '14px 8px', borderRadius: 16, cursor: 'pointer',
