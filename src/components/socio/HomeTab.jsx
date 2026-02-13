@@ -37,7 +37,7 @@ export default function HomeTab({ member, unreadCount, onNotifications, onEventS
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <img src={member?.avatarUrl || '/images/avatar_male.png'}
+                    <img src={member?.avatarUrl || '/logos/CASLA_logo.png'}
                         alt="avatar" style={{
                             width: 44, height: 44, borderRadius: '50%', background: '#eee',
                             border: '2px solid #e8eef5'

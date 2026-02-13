@@ -15,7 +15,7 @@ import SocioSplashScreen from '@/components/socio/SocioSplashScreen';
 const TABS = [
     { id: 'home', label: 'Home', icon: HomeIcon },
     { id: 'adn', label: 'ADN+', icon: Star },
-    { id: 'carnet', label: 'Carnet QR', icon: QrCode },
+    { id: 'carnet', label: 'CARNET QR', icon: QrCode },
     { id: 'entradas', label: 'Entradas', icon: Ticket },
     { id: 'gobernanza', label: 'Gobernanza', icon: Building2 },
     { id: 'mas', label: 'Más', icon: MoreHorizontal },
@@ -56,7 +56,7 @@ export default function SocioPage() {
                         email: session.user.email,
                         memberNumber: '85001', dni: '33000000', category: 'Activo Pleno',
                         status: 'ACTIVO - AL DÍA', seniority: '8 años', phone: '+5491155001234',
-                        avatarUrl: '/images/avatar_male.png',
+                        avatarUrl: '/logos/CASLA_logo.png',
                     });
                 });
         }
