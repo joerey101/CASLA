@@ -1,117 +1,169 @@
 const { PrismaClient } = require('@prisma/client');
-require('dotenv').config(); // Need dotenv to read env vars in seed script
 
-// Prisma 7 with config file might need explicit datasource URL in constructor 
-// if schema doesn't have it.
-const prisma = new PrismaClient();
+async function getPrisma() {
+    const dbUrl = process.env.DATABASE_URL || '';
 
-async function main() {
-    console.log('Start seeding ...');
-
-    // --- 1. Clean existing data ---
-    // Try-catch blocks to handle potential table missing errors if migration failed
-    try { await prisma.accessLog.deleteMany(); } catch (e) { console.log("AccessLog table might not exist"); }
-    try { await prisma.member.deleteMany(); } catch (e) { console.log("Member table might not exist"); }
-    try { await prisma.user.deleteMany(); } catch (e) { console.log("User table might not exist"); }
-    try { await prisma.match.deleteMany(); } catch (e) { console.log("Match table might not exist"); }
-
-    console.log('Cleaned data (if tables existed).');
-
-    // --- 2. Create Users (Auth) ---
-    await prisma.user.createMany({
-        data: [
-            {
-                email: 'admin@casla.com.ar',
-                password: 'CaslaAdmin',
-                role: 'ADMIN',
-                name: 'Administrador General',
-            },
-            {
-                email: 'supervisor@casla.com.ar',
-                password: 'CaslaSuper',
-                role: 'SUPERVISOR',
-                name: 'Supervisor Tarde',
-            },
-            {
-                email: 'operador@casla.com.ar',
-                password: 'CaslaOper',
-                role: 'OPERATOR',
-                name: 'Operador Caja 4',
-            },
-        ],
-    });
-
-    console.log(`Created administrative users.`);
-
-    // --- 3. Create Matches ---
-    await prisma.match.createMany({
-        data: [
-            { rival: "Estudiantes (RC)", date: new Date('2026-02-19T21:15:00'), time: "21:15", tournament: "Copa LPF", isLocal: true },
-            { rival: "Instituto", date: new Date('2026-02-24T18:00:00'), time: "18:00", tournament: "Copa LPF", isLocal: true },
-            { rival: "Independiente", date: new Date('2026-03-07T19:15:00'), time: "19:15", tournament: "Clásico", isLocal: true, isClassic: true },
-        ],
-    });
-
-    console.log('Created matches.');
-
-    // --- 4. Create Members (Patronymic Data) ---
-    const names = ["Juan", "Maria", "Pedro", "Ana", "Luis", "Sofia", "Carlos", "Lucia", "Miguel", "Elena", "Diego", "Valentina", "Javier", "Camila", "Fernando", "Martina", "Roberto", "Julia", "Daniel", "Paula"];
-    const lastnames = ["Perez", "Garcia", "Lopez", "Martinez", "Gonzalez", "Rodriguez", "Fernandez", "Torres", "Ramirez", "Flores", "Acosta", "Benitez", "Castro", "Diaz", "Escobar", "Gimenez", "Herrera", "Ibarra", "Juarez", "Luna"];
-    const categories = ["Activo Pleno", "Activo Simple", "Cadete", "Infantil", "Vitalicio", "Socio Interior"];
-
-    const membersData = [];
-
-    // Fixed Member for Demo (Juan Carlos Cuervo)
-    membersData.push({
-        dni: "32456789",
-        memberNumber: "90123",
-        fullName: "Juan Carlos Cuervo",
-        category: "Activo Pleno",
-        status: "ACTIVO - AL DÍA",
-        seniority: "12 años",
-        seatLocation: "Platea Norte Baja",
-        sector: "C",
-        gate: "4",
-        accessPoint: "Av. La Plata",
-        qrToken: "initial-token-123",
-        qrExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-    });
-
-    // Random Members
-    for (let i = 0; i < 50; i++) {
-        const name = names[Math.floor(Math.random() * names.length)];
-        const lastname = lastnames[Math.floor(Math.random() * lastnames.length)];
-        const categoria = categories[Math.floor(Math.random() * categories.length)];
-        const memberId = 90124 + i;
-
-        membersData.push({
-            dni: (30000000 + i).toString(),
-            memberNumber: memberId.toString(),
-            fullName: `${name} ${lastname}`,
-            category: categoria,
-            status: Math.random() > 0.1 ? "ACTIVO - AL DÍA" : "MOROSO",
-            seniority: `${Math.floor(Math.random() * 20) + 1} años`,
-            seatLocation: Math.random() > 0.7 ? "Platea Sur" : "Popular Local",
-            sector: "General",
-            gate: Math.random() > 0.5 ? "10" : "4",
-        });
+    if (dbUrl.startsWith('postgres')) {
+        const { Pool } = require('pg');
+        const { PrismaPg } = require('@prisma/adapter-pg');
+        const pool = new Pool({ connectionString: dbUrl });
+        const adapter = new PrismaPg(pool);
+        return new PrismaClient({ adapter });
+    } else {
+        const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+        const { resolve } = require('path');
+        let sqliteUrl = dbUrl || 'file:./dev.db';
+        if (sqliteUrl.startsWith('file:./') || sqliteUrl.startsWith('file:dev.db')) {
+            const dbPath = sqliteUrl.replace('file:', '');
+            const absolutePath = resolve(process.cwd(), dbPath);
+            sqliteUrl = `file:${absolutePath}`;
+        }
+        const adapter = new PrismaBetterSqlite3({ url: sqliteUrl });
+        return new PrismaClient({ adapter });
     }
-
-    for (const m of membersData) {
-        await prisma.member.create({ data: m });
-    }
-
-    console.log(`Created ${membersData.length} members.`);
-
-    console.log('Seeding finished.');
 }
 
-main()
-    .then(async () => {
+async function main() {
+    const prisma = await getPrisma();
+    console.log('🌱 Seeding database...');
+
+    try {
+        // Clear some data to avoid duplicates if re-running
+        // (Be careful with deleteMany in production, but okay for this demo seed)
+        // await prisma.member.deleteMany(); 
+
+        // 1. Create/update test member "Mariano"
+        const mariano = await prisma.member.upsert({
+            where: { dni: '33000000' },
+            update: {},
+            create: {
+                dni: '33000000',
+                memberNumber: '85001',
+                fullName: 'Mariano Pérez',
+                email: 'mariano@gmail.com',
+                phone: '+5491155001234',
+                category: 'Activo Pleno',
+                status: 'ACTIVO - AL DÍA',
+                seniority: '8 años',
+                avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mariano',
+                seatLocation: 'Platea Norte Baja',
+                sector: 'Sector C - Fila 12',
+                gate: 'Puerta 4',
+                accessPoint: 'Av. La Plata',
+                password: 'socio123',
+            },
+        });
+        console.log(`✅ Member created: ${mariano.fullName}`);
+
+        // Checking if events already exist to avoid multi-seed errors
+        const eventCount = await prisma.event.count();
+        if (eventCount === 0) {
+            const events = await Promise.all([
+                prisma.event.create({
+                    data: {
+                        title: 'Abono 2026',
+                        description: 'Torneo Liga Profesional 2026 - Comprá tu abono y asegurá tu lugar',
+                        category: 'FUTBOL',
+                        type: 'ABONO',
+                        date: new Date('2026-03-01'),
+                        location: 'Estadio Pedro Bidegain',
+                        imageUrl: '/images/estadio.jpg',
+                        sectors: JSON.stringify(['Popular Local', 'Popular Visitante', 'Platea Norte', 'Platea Sur', 'Platea Preferencial']),
+                        payPlans: JSON.stringify(['1 pago', '3 cuotas sin interés', '6 cuotas sin interés']),
+                        maxPerUser: 4,
+                        price: 250000,
+                    },
+                }),
+                prisma.event.create({
+                    data: {
+                        title: 'San Lorenzo vs Estudiantes de Rio Cuarto',
+                        description: 'Liga Profesional de Fútbol - Fecha 5',
+                        category: 'FUTBOL',
+                        type: 'MATCH',
+                        date: new Date('2026-02-19'),
+                        location: 'Estadio Pedro Bidegain',
+                        imageUrl: '/images/match-estudiantes.jpg',
+                        sectors: JSON.stringify(['Popular Local', 'Platea Norte', 'Platea Sur']),
+                        payPlans: JSON.stringify(['1 pago']),
+                        maxPerUser: 6,
+                        price: 15000,
+                    },
+                }),
+                prisma.event.create({
+                    data: {
+                        title: 'San Lorenzo vs Racing Club',
+                        description: 'Liga Profesional de Fútbol - Fecha 8',
+                        category: 'FUTBOL',
+                        type: 'MATCH',
+                        date: new Date('2026-03-12'),
+                        location: 'Estadio Pedro Bidegain',
+                        imageUrl: '/images/match-racing.jpg',
+                        sectors: JSON.stringify(['Popular Local', 'Platea Norte', 'Platea Sur']),
+                        payPlans: JSON.stringify(['1 pago']),
+                        maxPerUser: 6,
+                        price: 20000,
+                    },
+                }),
+            ]);
+            console.log(`✅ ${events.length} events created`);
+        } else {
+            console.log('⏩ Events skip, already exist');
+        }
+
+        // Family members
+        const familyCount = await prisma.familyMember.count({ where: { memberId: mariano.id } });
+        if (familyCount === 0) {
+            await prisma.familyMember.createMany({
+                data: [
+                    {
+                        memberId: mariano.id,
+                        fullName: 'Laura Pérez',
+                        relationship: 'Cónyuge',
+                        memberNumber: '85002',
+                        category: 'Activo Pleno',
+                    },
+                    {
+                        memberId: mariano.id,
+                        fullName: 'Tomás Pérez',
+                        relationship: 'Hijo',
+                        memberNumber: '85003',
+                        category: 'Cadete',
+                    },
+                ]
+            });
+            console.log(`✅ Family members created`);
+        }
+
+        // Payments
+        const paymentCount = await prisma.payment.count({ where: { memberId: mariano.id } });
+        if (paymentCount === 0) {
+            await prisma.payment.createMany({
+                data: [
+                    {
+                        memberId: mariano.id,
+                        amount: 25000,
+                        concept: 'Cuota Enero 2026',
+                        status: 'COMPLETED',
+                        createdAt: new Date('2026-01-05'),
+                    },
+                    {
+                        memberId: mariano.id,
+                        amount: 25000,
+                        concept: 'Cuota Febrero 2026',
+                        status: 'COMPLETED',
+                        createdAt: new Date('2026-02-05'),
+                    }
+                ]
+            });
+            console.log(`✅ Payment history created`);
+        }
+
+        console.log('\n🎉 Seed completed!');
+    } catch (e) {
+        console.error('❌ Seed error:', e);
+    } finally {
         await prisma.$disconnect();
-    })
-    .catch(async (e) => {
-        console.error(e);
-        await prisma.$disconnect();
-        process.exit(1);
-    });
+    }
+}
+
+main();

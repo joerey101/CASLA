@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model Member {
@@ -11,6 +11,8 @@ model Member {
   dni           String   @unique
   memberNumber  String   @unique // N° Socio
   fullName      String
+  email         String?  // Email del socio
+  phone         String?  // Teléfono
   category      String   // Activo Pleno, Cadete, etc.
   status        String   // ACTIVO - AL DÍA, MOROSO
   seniority     String?  // Antigüedad (e.g. "12 años")
@@ -26,10 +28,17 @@ model Member {
   gate          String?  // Puerta 4
   accessPoint   String?  // Av. La Plata
   
+  // Auth para socios
+  password      String?  // Hash de contraseña para login socio
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   accessLogs    AccessLog[]
+  tickets       Ticket[]
+  payments      Payment[]
+  familyMembers FamilyMember[]
+  notifications Notification[]
 }
 
 model AccessLog {
@@ -57,4 +66,68 @@ model User {
   password  String   
   role      String   @default("ADMIN") // ADMIN, STAFF
   name      String?
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String   // "San Lorenzo vs Estudiantes RC"
+  description String?  // "Liga Profesional de Fútbol"
+  category    String   // FUTBOL, REUNION_CD, POLIDEPORTIVO, CIUDAD_DEPORTIVA
+  type        String   // MATCH, ABONO, COLONIA, TEMPORADA
+  date        DateTime
+  location    String   // "Estadio Pedro Bidegain"
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  sectors     String?  // JSON: ["Popular Local", "Platea Norte", ...]
+  payPlans    String?  // JSON: ["1 pago", "3 cuotas", "6 cuotas"]
+  maxPerUser  Int      @default(4)
+  price       Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tickets     Ticket[]
+}
+
+model Ticket {
+  id         String   @id @default(cuid())
+  memberId   String
+  member     Member   @relation(fields: [memberId], references: [id])
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id])
+  type       String   // ENTRADA, ABONO
+  sector     String
+  quantity   Int
+  payPlan    String?
+  status     String   @default("ACTIVE") // ACTIVE, USED, CANCELLED
+  createdAt  DateTime @default(now())
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  amount      Float
+  concept     String   // "Cuota Febrero 2026", "Abono Estadio"
+  status      String   // COMPLETED, PENDING, FAILED
+  createdAt   DateTime @default(now())
+}
+
+model FamilyMember {
+  id           String   @id @default(cuid())
+  memberId     String
+  member       Member   @relation(fields: [memberId], references: [id])
+  fullName     String
+  relationship String   // "Hijo/a", "Cónyuge", "Padre/Madre"
+  memberNumber String?
+  category     String?
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  memberId  String
+  member    Member   @relation(fields: [memberId], references: [id])
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

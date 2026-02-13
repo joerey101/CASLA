@@ -153,10 +153,7 @@ export default function App() {
 
   // === HANDLERS ===
   const handleLogout = () => {
-    signOut({ redirect: false });
-    setIsAuthenticated(false);
-    setCurrentUser(null);
-    setActiveTab('inicio');
+    signOut({ callbackUrl: '/' });
   };
 
   const handleSearch = (query) => {

@@ -10,6 +10,7 @@ export default defineConfig({
     seed: "node prisma/seed.js",
   },
   datasource: {
-    url: process.env["DATABASE_URL"] || process.env["POSTGRES_URL_NON_POOLING"],
+    // Use DATABASE_URL from environment (either .env.local or Vercel)
+    url: process.env.DATABASE_URL,
   },
 });

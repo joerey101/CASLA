@@ -12,11 +12,21 @@ export async function GET(req) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const memberId = session.user?.memberId;
+
+    if (!prisma || !memberId) {
+        // Mock dynamic QR logic
+        const newToken = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+        return NextResponse.json({ token: newToken, expiresAt: expiresAt });
+    }
+
     try {
-        let member = await prisma.member.findFirst();
+        let member = await prisma.member.findUnique({
+            where: { id: memberId },
+        });
 
         if (!member) {
-            // Mock dynamic QR logic
             const newToken = crypto.randomBytes(32).toString('hex');
             const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
             return NextResponse.json({ token: newToken, expiresAt: expiresAt });
