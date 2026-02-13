@@ -8,7 +8,7 @@ function ProfileView({ member, onBack }) {
             <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', marginBottom: 16, color: '#002e5d' }}>
                 <ArrowLeft size={20} /></button>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                <img src={member?.avatarUrl || '/logos/CASLA_logo.png'}
+                <img src={member?.avatarUrl || '/logos/CASLA_logo.png'} alt="Perfil"
                     style={{ width: 80, height: 80, borderRadius: '50%', background: '#eee', marginBottom: 12, border: '3px solid #e8eef5' }} />
                 <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#002e5d' }}>{member?.fullName || 'Socio'}</h2>
                 <p style={{ color: '#666', fontSize: 14, margin: '4px 0' }}>{member?.email || ''}</p>
@@ -37,9 +37,10 @@ function ProfileView({ member, onBack }) {
 
 function FamilyView({ member, onBack }) {
     const [family, setFamily] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     useEffect(() => {
-        if (!member?.id) { setLoading(false); return; }
+        if (!member?.id) return;
+        setLoading(true);
         fetch(`/api/family?memberId=${member.id}`)
             .then(r => r.json()).then(d => { setFamily(Array.isArray(d) ? d : []); setLoading(false); })
             .catch(() => setLoading(false));
@@ -81,11 +82,12 @@ function PaymentsView({ member, onBack }) {
     const [payments, setPayments] = useState([]);
     const [total, setTotal] = useState(0);
     const [offset, setOffset] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const LIMIT = 10;
 
     const load = (o) => {
-        if (!member?.id) { setLoading(false); return; }
+        if (!member?.id) return;
+        setLoading(true);
         fetch(`/api/payments?memberId=${member.id}&limit=${LIMIT}&offset=${o}`)
             .then(r => r.json()).then(d => {
                 setPayments(prev => o === 0 ? (d.payments || []) : [...prev, ...(d.payments || [])]);
@@ -149,10 +151,11 @@ function NotificationsView({ member, onBack }) {
     const [notifications, setNotifications] = useState([]);
     const [filter, setFilter] = useState('all');
     const [search, setSearch] = useState('');
-    const [loading, setLoading] = true;
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (!member?.id) { setLoading(false); return; }
+        if (!member?.id) return;
+        setLoading(true);
         const params = new URLSearchParams({ memberId: member.id });
         if (filter === 'unread') params.set('unread', 'true');
         if (search) params.set('search', search);
@@ -237,7 +240,7 @@ export default function MasTab({ member, onLogout }) {
                 background: '#fff', padding: 20, borderRadius: 20, border: '1px solid #eee', marginBottom: 20,
                 display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
             }}>
-                <img src={member?.avatarUrl || '/logos/CASLA_logo.png'}
+                <img src={member?.avatarUrl || '/logos/CASLA_logo.png'} alt="Avatar"
                     style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #e8eef5' }} />
                 <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 18, fontWeight: 800, color: '#002e5d' }}>{member?.fullName || 'Socio'}</div>

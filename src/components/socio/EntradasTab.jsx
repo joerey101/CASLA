@@ -5,10 +5,10 @@ import { Ticket } from 'lucide-react';
 export default function EntradasTab({ member }) {
     const [tab, setTab] = useState('ENTRADA');
     const [tickets, setTickets] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        if (!member?.id) { setLoading(false); return; }
+        if (!member?.id) return;
         setLoading(true);
         fetch(`/api/tickets?memberId=${member.id}&type=${tab}`)
             .then(r => r.json())

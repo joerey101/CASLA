@@ -31,23 +31,14 @@ const WHATSAPP_NUMBER = "+54 9 11 5333-6237";
 export default function App() {
   // === AUTH ===
   const { data: session, status } = useSession();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
 
-  useEffect(() => {
-    if (status === 'authenticated' && session) {
-      setIsAuthenticated(true);
-      setCurrentUser({
-        name: session.user.name || 'Usuario',
-        role: (session.user.role || 'admin').toLowerCase(),
-        avatar: (session.user.name || 'U').charAt(0).toUpperCase(),
-        memberId: session.user.memberId
-      });
-    } else {
-      setIsAuthenticated(false);
-      setCurrentUser(null);
-    }
-  }, [session, status]);
+  const isAuthenticated = status === 'authenticated';
+  const currentUser = isAuthenticated && session ? {
+    name: session.user.name || 'Usuario',
+    role: (session.user.role || 'admin').toLowerCase(),
+    avatar: (session.user.name || 'U').charAt(0).toUpperCase(),
+    memberId: session.user.memberId
+  } : null;
 
   // === GLOBAL DATA ===
   const [database, setDatabase] = useState([]);
