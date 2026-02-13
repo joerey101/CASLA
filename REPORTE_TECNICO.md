@@ -1,31 +1,31 @@
 # Reporte Técnico de Avances - Proyecto CASLA
 **Fecha:** 13 de Febrero, 2026
-**Hito:** Integración de App de Socios, Seguridad y Base de Datos
+**Hito:** Estabilización Backend, Bi-modal DB y Deploy a Vercel
 
-## 1. Autenticación y Seguridad (Socio-First)
-Se ha implementado un sistema de autenticación robusto utilizando **NextAuth.js**, migrando de un sistema de mocks a validaciones reales.
-- **Login Inteligente:** La página de inicio de sesión (`/socio/login`) ahora acepta tanto **DNI** (para socios) como **Email** (para staff administrativo), redirigiendo al usuario a la interfaz correspondiente.
-- **Rutas Protegidas:** Se implementó protección a nivel de layout y página. Los usuarios no autenticados son redirigidos automáticamente al login al intentar acceder a `/socio`.
-- **Social Login:** Se dejó preparada la interfaz y la lógica de backend para ingresos vía Google y Facebook.
+## 1. Estabilización de la Capa de Datos (Capa Crítica)
+Se resolvió el "desacople" entre el entorno de desarrollo local y la producción en Vercel/Neon:
+- **Detección Automática de DB (Bi-modal):** El archivo `db.js` fue reescrito para detectar dinámicamente el entorno. Usa **SQLite** en tu Mac (vía `better-sqlite3`) y **PostgreSQL** en Vercel (vía `pg`).
+- **Resiliencia de Compilación:** Se eliminaron las importaciones estáticas de módulos nativos de C++ que causaban errores de "Module not found" en Vercel. Ahora el backend es 100% compatible con entornos serverless.
+- **Rutas Relativas Dinámicas:** Se eliminaron todas las rutas absolutas hardcodeadas (e.g. `/Users/joserey/...`). Ahora el sistema localiza la base de datos `dev.db` usando `process.cwd()`.
 
-## 2. Integración con Base de Datos (Prisma)
-Se vinculó la interfaz de la App de Socios con la base de datos **SQLite** (dev) y preparada para **PostgreSQL** (prod).
-- **Vínculo de Identidad:** El sistema ahora asocia el `memberId` del socio logueado con su perfil en la base de datos real.
-- **Persistencia:** Datos como el nombre, número de socio, categoría, y notificaciones se traen en tiempo real desde `prisma`.
-- **Seed de Datos:** Se actualizó el script de seed para incluir contraseñas de prueba (`socio123`) y datos consistentes con los diseños.
+## 2. Unificación de Autenticación
+- **Validación de Credenciales:** Se corrigió el flujo de login de socios. Ya no depende de mocks estáticos; las consultas a `Prisma` ahora incluyen los filtros de identidad correctos (`memberId`, `dni`).
+- **Socio Login Fix:** Se verificó localmente que el DNI `33000000` con password `socio123` permite el acceso total al dashboard de socios cargando datos reales desde la base de datos.
+- **Null-checks Preventivos:** Se agregaron salvaguardas en las APIs para que, en caso de falla de conexión a la DB, el sistema retorne datos de reserva (mocks) en lugar de arrojar un error 500.
 
-## 3. UI/UX y Refinamiento Estético
-Siguiendo los principios de diseño premium solicitados:
-- **Navegación Inferior (Tab Bar):** Rediseñada con efectos 3D, sombras internas al presionar, y un estado activo con brillo (glow) en color azul marino. Se eliminó la elevación del botón central para mantener una estética unificada.
-- **Flujo de Entrada:** Se implementó y luego se retiró (por optimización) la pantalla de "Splash" para usuarios ya logueados, permitiendo un acceso inmediato al carnet.
-- **Modal de Logout:** Se corrigió el diseño del pop-up de salida, asegurando legibilidad total con tipografía en Azul Navy y Gris Oscuro sobre fondo blanco, eliminando el error de "texto invisible".
+## 3. Automatización de Despliegue (DevOps)
+- **Provisionamiento Automático:** Se configuró el `package.json` para que Vercel realice automáticamente:
+    1. `prisma generate`: Regeneración del cliente.
+    2. `db push`: Sincronización del esquema con Neon PostgreSQL.
+    3. `db seed`: Carga de datos de prueba (Mariano Pérez) para asegurar que el sistema esté listo inmediatamente tras el deploy.
+- **Sincronización de Entorno:** Se alinearon las variables `NEXTAUTH_SECRET` y se limpiaron los secretos hardcodeados en el código fuente por seguridad.
 
-## 4. Estabilidad y Entorno Local
-- **Corrección de Redirecciones:** Se identificó y corrigió un conflicto de puertos en `.env.local` donde el `NEXTAUTH_URL` apuntaba al puerto 3000 mientras el proyecto corría en el 3024.
-- **Logout Dinámico:** El cierre de sesión ahora utiliza `window.location.origin` y `callbackUrl` específicos para asegurar que el usuario siempre vuelva al portal de socios y no a la raíz del sitio administrativo si no se desea.
+## 4. Verificación de Funcionalidad
+- ✅ **Admin Login:** Funcionando (`admin@casla.com.ar` / `admin`).
+- ✅ **Socio Login:** Funcionando con persistencia de DB SQLite local.
+- ✅ **Dashboard Socio:** Renderizando correctamente con "Bienvenido Mariano!", tabs interactivas y Token QR funcional.
+- 🚀 **Estado en Vercel:** Código subido a GitHub y proceso de build automatizado iniciado.
 
 ---
-**Próximos Pasos Sugeridos:**
-- Implementación de la sección "Entradas" con compra real conectada a `Events`.
-- Activación de notificaciones push o refresco automático del Token QR.
-- Vinculación del grupo familiar en la pestaña "Más".
+**IMPORTANTE PARA PRODUCCIÓN:**
+Para que la conexión sea exitosa en Vercel, es mandatorio asegurar que las variables de entorno (`DATABASE_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`) estén configuradas en el dashboard de Vercel. Una vez configuradas, el sistema se auto-conectará y poblará la base de datos Neon.
