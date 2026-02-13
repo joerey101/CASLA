@@ -11,6 +11,11 @@ export async function GET(req) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    if (!prisma) {
+        const mockData = require('@/lib/mockDb.json');
+        return NextResponse.json(mockData.members);
+    }
+
     try {
         const members = await prisma.member.findMany();
 
