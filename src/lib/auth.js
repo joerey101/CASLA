@@ -34,7 +34,19 @@ export const authOptions = {
                     }
                 }
 
-                // 2. Check if it's a Socio (Username is DNI) — requires DB
+                // 2. Check if it's a Socio (Username is DNI) — EMERGENCY MODE (Mock Login)
+                if (username === "33000000" && password === "socio123") {
+                    return {
+                        id: "socio-mariano-123",
+                        name: "Mariano Pérez",
+                        email: "mariano.perez@example.com",
+                        role: "member",
+                        type: "socio",
+                        memberNumber: "99999"
+                    };
+                }
+
+                // Normal DB Access (Fallback if DB is available)
                 if (prisma) {
                     try {
                         const member = await prisma.member.findUnique({
