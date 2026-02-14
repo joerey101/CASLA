@@ -8,7 +8,7 @@ function ProfileView({ member, onBack }) {
             <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', marginBottom: 16, color: '#002e5d' }}>
                 <ArrowLeft size={20} /></button>
             <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                <img src={member?.avatarUrl || '/logos/CASLA_logo.png'} alt="Perfil"
+                <img src={member?.avatarUrl || '/images/avatar_male_casla.png'} alt="Perfil"
                     style={{ width: 80, height: 80, borderRadius: '50%', background: '#eee', marginBottom: 12, border: '3px solid #e8eef5' }} />
                 <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: '#002e5d' }}>{member?.fullName || 'Socio'}</h2>
                 <p style={{ color: '#666', fontSize: 14, margin: '4px 0' }}>{member?.email || ''}</p>
@@ -240,7 +240,7 @@ export default function MasTab({ member, onLogout }) {
                 background: '#fff', padding: 20, borderRadius: 20, border: '1px solid #eee', marginBottom: 20,
                 display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
             }}>
-                <img src={member?.avatarUrl || '/logos/CASLA_logo.png'} alt="Avatar"
+                <img src={member?.avatarUrl || '/images/avatar_male_casla.png'} alt="Avatar"
                     style={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #e8eef5' }} />
                 <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 18, fontWeight: 800, color: '#002e5d' }}>{member?.fullName || 'Socio'}</div>

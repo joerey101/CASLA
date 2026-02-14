@@ -10,7 +10,8 @@ import EntradasTab from '@/components/socio/EntradasTab';
 import GobernanzaTab from '@/components/socio/GobernanzaTab';
 import MasTab from '@/components/socio/MasTab';
 import PurchaseFlow from '@/components/socio/PurchaseFlow';
-import SocioSplashScreen from '@/components/socio/SocioSplashScreen';
+import SocioSidebar from '@/components/socio/SocioSidebar';
+import SocioRightPanel from '@/components/socio/SocioRightPanel';
 
 const TABS = [
     { id: 'home', label: 'Home', icon: HomeIcon },
@@ -28,6 +29,14 @@ export default function SocioPage() {
     const [member, setMember] = useState(null);
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [isDesktop, setIsDesktop] = useState(false);
+
+    useEffect(() => {
+        const handleResize = () => setIsDesktop(window.innerWidth > 1024);
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -49,7 +58,6 @@ export default function SocioPage() {
                     }
                 })
                 .catch(() => {
-                    // Fallback to mock for demo if API fails
                     setMember({
                         id: session.user.memberId,
                         fullName: session.user.name || 'Mariano Pérez',
@@ -70,7 +78,7 @@ export default function SocioPage() {
 
     if (selectedEvent) {
         return (
-            <div style={{ maxWidth: 430, margin: '0 auto', background: '#fff', minHeight: '100dvh' }}>
+            <div style={{ maxWidth: isDesktop ? 1000 : 430, margin: '0 auto', background: '#fff', minHeight: '100dvh', padding: isDesktop ? 40 : 0 }}>
                 <PurchaseFlow event={selectedEvent} member={member}
                     onBack={() => setSelectedEvent(null)} />
             </div>
@@ -82,27 +90,51 @@ export default function SocioPage() {
             case 'home':
                 return <HomeTab member={member} unreadCount={unreadCount}
                     onNotifications={() => setTab('mas')}
-                    onEventSelect={setSelectedEvent} />;
-            case 'adn': return <AdnPlusTab />;
-            case 'carnet': return <CarnetQRTab member={member} />;
-            case 'entradas': return <EntradasTab member={member} />;
-            case 'gobernanza': return <GobernanzaTab />;
-            case 'mas': return <MasTab member={member} onLogout={() => signOut({ callbackUrl: '/socio/login' })} />;
+                    onEventSelect={setSelectedEvent} isDesktop={isDesktop} />;
+            case 'adn': return <AdnPlusTab isDesktop={isDesktop} />;
+            case 'carnet': return <CarnetQRTab member={member} isDesktop={isDesktop} />;
+            case 'entradas': return <EntradasTab member={member} isDesktop={isDesktop} />;
+            case 'gobernanza': return <GobernanzaTab isDesktop={isDesktop} />;
+            case 'mas': return <MasTab member={member} onLogout={() => signOut({ callbackUrl: '/socio/login' })} isDesktop={isDesktop} />;
             default: return null;
         }
     };
 
+    if (isDesktop) {
+        return (
+            <div style={{
+                background: '#f1f5f9',
+                minHeight: '100vh',
+                fontFamily: "'Inter', sans-serif"
+            }}>
+                <SocioSidebar activeTab={tab} onTabChange={setTab} onLogout={() => signOut({ callbackUrl: '/socio/login' })} />
+
+                <main style={{
+                    marginLeft: 280,
+                    marginRight: 360,
+                    padding: '40px 60px',
+                    minHeight: '100vh'
+                }}>
+                    <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+                        {renderTab()}
+                    </div>
+                </main>
+
+                <SocioRightPanel member={member} />
+            </div>
+        );
+    }
+
+    // Mobile View (Legacy)
     return (
         <div style={{
             maxWidth: 430, margin: '0 auto', background: '#fafafa', minHeight: '100dvh',
             position: 'relative', fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
         }}>
-
             <div style={{ paddingBottom: 80 }}>
                 {renderTab()}
             </div>
 
-            {/* Bottom Tab Bar — 6 tabs */}
             <div style={{
                 position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
                 width: '100%', maxWidth: 430, background: '#fff', borderTop: '1px solid #f0f0f0',

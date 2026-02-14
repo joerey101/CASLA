@@ -9,14 +9,19 @@ const CATEGORIES = [
     { id: 'CIUDAD_DEPORTIVA', label: 'Ciudad Dep.', emoji: '🏗️' },
 ];
 
-export default function HomeTab({ member, unreadCount, onNotifications, onEventSelect }) {
+export default function HomeTab({ member, unreadCount, onNotifications, onEventSelect, isDesktop }) {
     const [category, setCategory] = useState('FUTBOL');
     const [events, setEvents] = useState([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
 
+    const [gestiones] = useState([
+        { id: 1, fecha: '12 Feb 2026', tramite: 'Renovación de Carnet', tipo: 'Trámite', estado: 'RESUELTO', color: '#22c55e' },
+        { id: 2, fecha: '10 Feb 2026', tramite: 'Consulta de Deuda Social', tipo: 'Llamada', estado: 'PENDIENTE', color: '#f59e0b' },
+        { id: 3, fecha: '05 Feb 2026', tramite: 'Adhesión a Débito Automático', tipo: 'Caja', estado: 'RESUELTO', color: '#22c55e' },
+    ]);
+
     useEffect(() => {
-        // setLoading(true) is handled by category click
         fetch(`/api/events?category=${category}`)
             .then(r => r.json())
             .then(data => { setEvents(Array.isArray(data) ? data : []); setLoading(false); })
@@ -32,12 +37,129 @@ export default function HomeTab({ member, unreadCount, onNotifications, onEventS
         return { day: d.getDate(), month: d.toLocaleString('es-AR', { month: 'short' }).toUpperCase() };
     };
 
+    if (isDesktop) {
+        return (
+            <div style={{ color: '#1e293b' }}>
+                {/* Header Superior Desktop */}
+                <div style={{ marginBottom: 40 }}>
+                    <h1 style={{ fontSize: 32, fontWeight: 900, color: '#002e5d', marginBottom: 4 }}>
+                        Hola, {member?.fullName?.split(' ')[0] || 'Mariano'}
+                    </h1>
+                    <p style={{ color: '#64748b', fontSize: 16, fontWeight: 500 }}>¡Bienvenido de vuelta a tu casa!</p>
+                </div>
+
+                {/* Secciones del Dashboard */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
+
+                    {/* Historial de Gestiones (CRM) */}
+                    <section>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#002e5d' }}>Historial de Gestiones</h2>
+                            <button style={{ color: '#3b82f6', background: 'none', border: 'none', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                                Ver todas
+                            </button>
+                        </div>
+
+                        <div style={{ background: '#fff', borderRadius: 24, padding: 0, border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <th style={{ padding: '20px 24px', fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>FECHA</th>
+                                        <th style={{ padding: '20px 24px', fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>GESTIÓN</th>
+                                        <th style={{ padding: '20px 24px', fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>TIPO</th>
+                                        <th style={{ padding: '20px 24px', fontSize: 13, color: '#94a3b8', fontWeight: 700 }}>ESTADO</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {gestiones.map((g) => (
+                                        <tr key={g.id} style={{ borderBottom: '1px solid #f8fafc' }}>
+                                            <td style={{ padding: '20px 24px', fontSize: 14, fontWeight: 600, color: '#64748b' }}>{g.fecha}</td>
+                                            <td style={{ padding: '20px 24px', fontSize: 14, fontWeight: 700, color: '#1e293b' }}>{g.tramite}</td>
+                                            <td style={{ padding: '20px 24px', fontSize: 14, color: '#64748b' }}>{g.tipo}</td>
+                                            <td style={{ padding: '20px 24px' }}>
+                                                <span style={{
+                                                    background: `${g.color}15`, color: g.color,
+                                                    padding: '6px 12px', borderRadius: 12, fontSize: 11, fontWeight: 800
+                                                }}>{g.estado}</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    {/* Eventos Próximos */}
+                    <section>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+                            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#002e5d' }}>Próximos Eventos</h2>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                {CATEGORIES.map(c => (
+                                    <button key={c.id} onClick={() => { setCategory(c.id); setLoading(true); }}
+                                        style={{
+                                            padding: '8px 16px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                                            border: category === c.id ? '2px solid #002e5d' : '1px solid #e2e8f0',
+                                            background: category === c.id ? '#fff' : 'transparent',
+                                            color: category === c.id ? '#002e5d' : '#888',
+                                            cursor: 'pointer'
+                                        }}>{c.label}</button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {loading ? (
+                            <div style={{ textAlign: 'center', padding: 40, color: '#94a3b8' }}>Cargando eventos...</div>
+                        ) : filtered.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: 40, background: '#fff', borderRadius: 24, border: '1px solid #e2e8f0' }}>
+                                <div style={{ fontSize: 40, marginBottom: 12 }}>🏟️</div>
+                                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#1e293b' }}>Sin eventos</h3>
+                                <p style={{ color: '#64748b', fontSize: 14 }}>No hay eventos en esta categoría</p>
+                            </div>
+                        ) : (
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
+                                {filtered.map(event => {
+                                    const { day, month } = fmtDate(event.date);
+                                    const location = typeof event.location === 'string'
+                                        ? (event.location.startsWith('{') ? JSON.parse(event.location).name : event.location)
+                                        : event.location?.name || 'Estadio Pedro Bidegain';
+
+                                    return (
+                                        <button key={event.id} onClick={() => onEventSelect?.(event)} style={{
+                                            background: '#fff', borderRadius: 24, padding: 24, border: '1px solid #e2e8f0',
+                                            textAlign: 'left', cursor: 'pointer', display: 'flex', gap: 20,
+                                            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', transition: 'transform 0.2s',
+                                            alignItems: 'center'
+                                        }}>
+                                            <div style={{ textAlign: 'center', minWidth: 60, flexShrink: 0 }}>
+                                                <div style={{ fontSize: 32, fontWeight: 900, color: '#002e5d', lineHeight: 1 }}>{day}</div>
+                                                <div style={{ fontSize: 12, fontWeight: 800, color: '#ef4444', marginTop: 2 }}>{month}</div>
+                                            </div>
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ fontSize: 16, fontWeight: 800, color: '#1e293b', marginBottom: 4 }}>{event.title}</div>
+                                                <div style={{ fontSize: 13, color: '#64748b', fontWeight: 500, marginBottom: 8 }}>{event.description}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <MapPin size={14} color="#94a3b8" />
+                                                    <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 600 }}>{location}</span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </section>
+
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div style={{ padding: '16px 20px', paddingBottom: 100 }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <img src={member?.avatarUrl || '/logos/CASLA_logo.png'}
+                    <img src={member?.avatarUrl || '/images/avatar_male_casla.png'}
                         alt="avatar" style={{
                             width: 44, height: 44, borderRadius: '50%', background: '#eee',
                             border: '2px solid #e8eef5'
