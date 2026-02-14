@@ -1,4 +1,4 @@
-# Reporte Técnico — CASLA V6.0
+# Reporte Técnico — CASLA V7.0 (Core Legacy Edition)
 
 > Fecha de cierre: 13 de Febrero de 2026  
 > Estado: ✅ **PRODUCCIÓN ACTIVA** — Base de datos Neon PostgreSQL conectada y verificada.
@@ -7,7 +7,7 @@
 
 ## 1. Resumen Ejecutivo
 
-El proyecto CASLA ha alcanzado la versión **V6.0**, consolidando la migración completa a una arquitectura de producción con base de datos centralizada en la nube.
+El proyecto CASLA ha alcanzado la versión **V7.0**, robusteciendo la arquitectura de datos con módulos de CRM, Gestión Documental y Perfil Extendido (Legacy).
 
 ### Logros principales de V6.0:
 - ✅ **Base de datos Neon PostgreSQL** operativa en producción (Vercel) y desarrollo.

@@ -348,7 +348,7 @@ export default function App() {
         </div>
         <div className="bg-[#E30613] text-white py-2 px-6 flex flex-col md:flex-row justify-between items-center text-[8px] font-bold uppercase tracking-widest gap-2">
           <span>Sitio Oficial CASLA © 2026</span>
-          <span className="opacity-80">Portal de Administración Socios V6.0</span>
+          <span className="opacity-80">Portal de Administración Socios V7.0</span>
         </div>
       </footer>
     </div>

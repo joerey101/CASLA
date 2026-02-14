@@ -31,7 +31,7 @@ export default function LoginScreen() {
                         <img src={SHIELD_URL} className="w-full h-full object-contain" alt="CASLA" />
                     </div>
                 </div>
-                <h2 className="text-2xl font-black text-blue-900 mb-1">PORTAL SOCIOS V6.0</h2>
+                <h2 className="text-2xl font-black text-blue-900 mb-1">PORTAL SOCIOS V7.0</h2>
                 <p className="text-slate-500 text-sm mb-8 font-bold">ACCESO CORPORATIVO</p>
                 <form onSubmit={handleLogin} className="space-y-4">
                     <input

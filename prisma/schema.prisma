@@ -13,6 +13,13 @@ model Member {
   fullName      String
   email         String?  // Email del socio
   phone         String?  // Teléfono
+  
+  // V7.0: Datos Extendidos (Legacy)
+  taxId            String? // CUIT/CUIL
+  alternativePhone String? // Teléfono alternativo
+  addressBilling   String? // Dirección de cobraza
+  birthDate        DateTime? // Fecha de nacimiento
+
   category      String   // Activo Pleno, Cadete, etc.
   status        String   // ACTIVO - AL DÍA, MOROSO
   seniority     String?  // Antigüedad (e.g. "12 años")
@@ -39,6 +46,10 @@ model Member {
   payments      Payment[]
   familyMembers FamilyMember[]
   notifications Notification[]
+  
+  // V7.0: Nuevos Módulos
+  interactions  Interaction[]
+  documents     MemberDocument[]
 }
 
 model AccessLog {
@@ -130,4 +141,30 @@ model Notification {
   body      String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+// V7.0: Módulo CRM (Interacciones Legacy)
+model Interaction {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  type        String   // CALL, EMAIL, WHATSAPP, IN_PERSON
+  category    String   // RECLAMO, CONSULTA, COBRANZA, BIENVENIDA
+  subject     String   // "Reclamo cuota", "Consulta abono"
+  notes       String?  // Detalle de la interacción
+  outcome     String?  // RESUELTO, PENDIENTE, ESCALADO
+  staffId     String   // User ID del staff que registró
+  createdAt   DateTime @default(now())
+}
+
+// V7.0: Módulo Documental (Legajo Digital)
+model MemberDocument {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  type        String   // CONTRATO_ADHESION, APTO_MEDICO, DNI_DIGITAL
+  storageUrl  String   // URL del archivo (S3/Blob)
+  expirationDate DateTime? // Para aptos médicos
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  uploadedAt  DateTime @default(now())
 }
