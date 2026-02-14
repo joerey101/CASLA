@@ -72,7 +72,7 @@ export default function DashboardSection({
                     {PORTAL_MODULES.map((mod) => (
                         <button
                             key={mod.id}
-                            onClick={() => alert(`Acceso directo a ${mod.label} - Funcionalidad en desarrollo para v5.1`)}
+                            onClick={() => alert(`Acceso directo a ${mod.label} - Funcionalidad en desarrollo para V6.0`)}
                             className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-400 transition-all text-left flex flex-col justify-between h-32 group"
                         >
                             <mod.icon size={24} className="text-blue-900 group-hover:text-red-500 transition-colors" />

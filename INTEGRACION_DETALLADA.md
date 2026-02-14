@@ -1,4 +1,4 @@
-# Reporte de Integración Integral: Proyecto CASLA (v5.1)
+# Reporte de Integración Integral: Proyecto CASLA V6.0
 
 Este documento detalla la arquitectura técnica, el flujo de datos y la integración entre el Frontend, Backend (API) y la Base de Datos (Neon PostgreSQL).
 
