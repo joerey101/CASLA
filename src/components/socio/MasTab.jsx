@@ -94,7 +94,7 @@ function PaymentsView({ member, onBack }) {
                 setTotal(d.total || 0);
                 setLoading(false);
             }).catch(() => setLoading(false));
-    }, [member?.id]);
+    }, [member]);
 
     useEffect(() => { load(0); }, [load]);
 
