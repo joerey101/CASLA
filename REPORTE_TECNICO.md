@@ -63,3 +63,26 @@ El proyecto CASLA ha alcanzado la versión **V7.0**, robusteciendo la arquitectu
 5. Seed de datos de producción (socio de prueba + eventos).
 6. Deploy exitoso en Vercel con base de datos viva.
 7. Documentación técnica completa (`INTEGRACION_DETALLADA.md`).
+
+---
+
+## 6. Monitoreo y Métricas en Producción
+
+Para evaluar la salud y el uso de la aplicación, contamos con tres paneles clave:
+
+### 6.1 Vercel Analytics (Frontend & API)
+- **Speed Insights**: Mide la velocidad real experimentada por los usuarios (Core Web Vitals).
+- **Web Analytics**: Tráfico, visitantes únicos y rutas más visitadas.
+- **Function Logs**: Tiempos de ejecución de las API Routes y errores de servidor (500).
+- **Usage**: Muestra el consumo de ancho de banda y ejecuciones de Serverless Functions (límite plan Hobby).
+
+### 6.2 Neon Dashboard (Base de Datos)
+- **Compute Hours**: Tiempo que la base de datos está activa (se apaga automáticamente tras inactividad en plan Free).
+- **Active Connections**: Número de usuarios simultáneos conectados a la DB.
+- **Storage**: Espacio en disco utilizado por las tablas y backups.
+- **Slow Query Log**: Identifica consultas lentas que necesitan optimización (Índices).
+
+### 6.3 Monitoreo Local (Lighthouse)
+- Ejecutable desde Chrome DevTools en modo "Incógnito".
+- Evalúa Performance, Accesibilidad y SEO on-page.
+- Meta: Mantener puntuaciones arriba de 90 en Desktop y Mobile.

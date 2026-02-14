@@ -1,10 +1,16 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import {
     Calendar, Users, CreditCard, X, Bell,
     HeartHandshake, ChevronRight, DollarSign, Receipt,
     Clock, FileText, User, Ticket, Dumbbell
 } from 'lucide-react';
+
+const USIGMap = dynamic(() => import('@/components/USIGMap'), {
+    ssr: false,
+    loading: () => <div className="w-full h-[400px] bg-gray-100 animate-pulse rounded-3xl flex items-center justify-center text-gray-400">Cargando mapa de sedes...</div>
+});
 
 const SHIELD_URL = "https://upload.wikimedia.org/wikipedia/commons/7/7b/Escudo_del_Club_Atl%C3%A9tico_San_Lorenzo_de_Almagro.svg";
 
@@ -42,6 +48,19 @@ export default function DashboardSection({
                         <div className="absolute -right-2 -bottom-2 opacity-5 group-hover:opacity-10 transition-opacity"><CreditCard size={48} /></div>
                     </div>
                 ))}
+            </div>
+
+            {/* Mapa de Sedes */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden p-1">
+                <div className="bg-slate-800 px-4 py-2 flex items-center justify-between rounded-t-2xl mb-1">
+                    <h3 className="text-white font-bold flex items-center gap-2 text-sm">📍 Sedes San Lorenzo</h3>
+                </div>
+                <div className="h-[400px] rounded-2xl overflow-hidden relative z-0">
+                    <USIGMap markers={[
+                        { lat: -34.6521, lng: -58.4402 }, // Estadio Pedro Bidegain
+                        { lat: -34.6235, lng: -58.4208 }  // Sede Av. La Plata
+                    ]} />
+                </div>
             </div>
 
             {/* Resultados de Búsqueda Múltiple */}
