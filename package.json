@@ -16,6 +16,7 @@
     "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.3.0",
     "@radix-ui/react-slot": "^1.2.4",
+    "@usig-gcba/mapa-interactivo": "^1.2.7",
     "@vercel/postgres": "^0.10.0",
     "better-sqlite3": "^12.6.2",
     "clsx": "^2.1.1",
