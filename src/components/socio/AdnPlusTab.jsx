@@ -1,15 +1,19 @@
 'use client';
 import { ADN_PLUS_LINKS } from '@/data/gobernanza';
 
-export default function AdnPlusTab() {
+export default function AdnPlusTab({ isDesktop }) {
     return (
         <div style={{ padding: 20, paddingBottom: 100 }}>
-            <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 24, color: '#111' }}>ADN+</h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <h2 style={{ fontSize: isDesktop ? 22 : 22, fontWeight: 800, marginBottom: 24, color: '#111' }}>ADN+</h2>
+            <div style={{
+                display: 'grid',
+                gridTemplateColumns: isDesktop ? 'repeat(auto-fill, minmax(280px, 1fr))' : '1fr',
+                gap: 16
+            }}>
                 {ADN_PLUS_LINKS.map(link => (
                     <a key={link.id} href={link.url} target="_blank" rel="noopener noreferrer"
                         style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'center', height: 100,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', height: isDesktop ? 140 : 100,
                             background: '#13294b', borderRadius: 20, textDecoration: 'none',
                             boxShadow: '0 8px 16px rgba(19,41,75,0.2)', transition: 'transform 0.15s, box-shadow 0.15s',
                             overflow: 'hidden', padding: 20
