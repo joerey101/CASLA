@@ -26,7 +26,7 @@ export default function SolicitudesSection({ requestsKB }) {
                                 <ChevronRight size={16} className="text-slate-300 group-hover:text-blue-500" />
                             </div>
                             <h4 className="font-bold text-slate-800 text-sm">{kb.title}</h4>
-                            <p className="text-xs text-slate-500 mt-1 italic">"{kb.question}"</p>
+                            <p className="text-xs text-slate-500 mt-1 italic">&quot;{kb.question}&quot;</p>
                             <p className="text-xs text-slate-700 mt-2 font-medium bg-green-50 p-2 rounded border-l-2 border-green-500">Solución: {kb.solution}</p>
                         </div>
                     ))}

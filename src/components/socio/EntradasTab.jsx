@@ -9,7 +9,7 @@ export default function EntradasTab({ member }) {
 
     useEffect(() => {
         if (!member?.id) return;
-        setLoading(true);
+        setTimeout(() => setLoading(true), 0);
         fetch(`/api/tickets?memberId=${member.id}&type=${tab}`)
             .then(r => r.json())
             .then(data => { setTickets(Array.isArray(data) ? data : []); setLoading(false); })

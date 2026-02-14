@@ -35,6 +35,8 @@ export const authOptions = {
                 }
 
                 // 2. Check if it's a Socio (Username is DNI) — EMERGENCY MODE (Mock Login)
+                // DISABLED: Now using real DB
+                /*
                 if (username === "33000000" && password === "socio123") {
                     return {
                         id: "socio-mariano-123",
@@ -46,6 +48,7 @@ export const authOptions = {
                         avatarUrl: "/images/avatar_male_casla.png"
                     };
                 }
+                */
 
                 // Normal DB Access (Fallback if DB is available)
                 if (prisma) {

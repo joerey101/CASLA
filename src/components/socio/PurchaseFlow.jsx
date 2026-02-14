@@ -11,7 +11,7 @@ export default function PurchaseFlow({ event, member, onBack }) {
     const [success, setSuccess] = useState(false);
 
     useEffect(() => {
-        if (!event?.id) { setDetail(event); return; }
+        if (!event?.id) { setTimeout(() => setDetail(event), 0); return; }
         fetch(`/api/events/${event.id}`)
             .then(r => r.json()).then(setDetail).catch(() => setDetail(event));
     }, [event]);
