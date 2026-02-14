@@ -89,9 +89,11 @@ export default function CarnetQRTab({ member }) {
                     <div style={{ textAlign: 'right' }}>
                         <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', fontWeight: 600, marginBottom: 2 }}>ESTADO</div>
                         <span style={{
-                            background: '#16a34a', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px',
-                            borderRadius: 20
-                        }}>AL DÍA</span>
+                            background: member?.status === 'MOROSO' ? '#ef4444' : '#16a34a',
+                            color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 10px',
+                            borderRadius: 20,
+                            textTransform: 'uppercase'
+                        }}>{member?.status || 'AL DÍA'}</span>
                     </div>
                 </div>
             </div>
