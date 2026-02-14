@@ -1,1 +1,8 @@
-import { defineConfig } from "prisma/config"; export default defineConfig({ schema: "prisma/schema.prisma", datasource: { url: "postgres://default:********@******.eu-central-1.aws.neon.tech:5432/verceldb?sslmode=require" } });
+import { defineConfig } from "prisma/config";
+
+export default defineConfig({
+    schema: "prisma/schema.prisma",
+    migrate: {
+        url: process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL || "",
+    },
+});
