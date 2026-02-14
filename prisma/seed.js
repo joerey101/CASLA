@@ -6,7 +6,10 @@ async function getPrisma() {
     if (dbUrl.startsWith('postgres')) {
         const { Pool } = require('pg');
         const { PrismaPg } = require('@prisma/adapter-pg');
-        const pool = new Pool({ connectionString: dbUrl });
+        const pool = new Pool({
+            connectionString: dbUrl,
+            ssl: { rejectUnauthorized: false }
+        });
         const adapter = new PrismaPg(pool);
         return new PrismaClient({ adapter });
     } else {
@@ -45,7 +48,7 @@ async function main() {
                 category: 'Activo Pleno',
                 status: 'ACTIVO - AL DÍA',
                 seniority: '8 años',
-                avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mariano',
+                avatarUrl: '/images/avatar_male_casla.png',
                 seatLocation: 'Platea Norte Baja',
                 sector: 'Sector C - Fila 12',
                 gate: 'Puerta 4',

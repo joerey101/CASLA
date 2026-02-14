@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { ChevronRight } from 'lucide-react';
 
 export default function SocioSplashScreen({ onEnter }) {
@@ -16,7 +16,7 @@ export default function SocioSplashScreen({ onEnter }) {
         setIsDragging(true);
     };
 
-    const handleMove = (e) => {
+    const handleMove = useCallback((e) => {
         if (!isDragging) return;
         const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
         const trackRect = trackRef.current.getBoundingClientRect();
@@ -32,14 +32,14 @@ export default function SocioSplashScreen({ onEnter }) {
             setDragX(MAX_DRAG);
             onEnter();
         }
-    };
+    }, [isDragging, MAX_DRAG, onEnter]);
 
-    const handleEnd = () => {
+    const handleEnd = useCallback(() => {
         if (dragX < MAX_DRAG * 0.95) {
             setDragX(0);
         }
         setIsDragging(false);
-    };
+    }, [dragX, MAX_DRAG]);
 
     useEffect(() => {
         if (isDragging) {
@@ -47,11 +47,6 @@ export default function SocioSplashScreen({ onEnter }) {
             window.addEventListener('mouseup', handleEnd);
             window.addEventListener('touchmove', handleMove);
             window.addEventListener('touchend', handleEnd);
-        } else {
-            window.removeEventListener('mousemove', handleMove);
-            window.removeEventListener('mouseup', handleEnd);
-            window.removeEventListener('touchmove', handleMove);
-            window.removeEventListener('touchend', handleEnd);
         }
         return () => {
             window.removeEventListener('mousemove', handleMove);
@@ -59,7 +54,7 @@ export default function SocioSplashScreen({ onEnter }) {
             window.removeEventListener('touchmove', handleMove);
             window.removeEventListener('touchend', handleEnd);
         };
-    }, [isDragging, dragX]);
+    }, [isDragging, handleMove, handleEnd]); // Ahora con dependencias estables
 
     return (
         <div style={{

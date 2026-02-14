@@ -6,7 +6,7 @@ export default function AbonosSection() {
     return (
         <div className="space-y-6 animate-in slide-in-from-right">
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                <h2 className="text-xl font-black text-blue-900 mb-4 flex items-center gap-2"><CreditCard size={20} /> Gestión de Abonos "Tu Lugar"</h2>
+                <h2 className="text-xl font-black text-blue-900 mb-4 flex items-center gap-2"><CreditCard size={20} /> Gestión de Abonos &quot;Tu Lugar&quot;</h2>
                 <div className="grid md:grid-cols-3 gap-4">
                     <div className="p-4 border border-slate-200 rounded-xl hover:border-blue-500 cursor-pointer transition-all">
                         <p className="font-bold text-slate-800">Platea Norte</p>

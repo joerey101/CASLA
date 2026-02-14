@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, Users, CreditCard, LogOut, ChevronRight, ArrowLeft, Search } from 'lucide-react';
 
 function ProfileView({ member, onBack }) {
@@ -40,7 +40,7 @@ function FamilyView({ member, onBack }) {
     const [loading, setLoading] = useState(false);
     useEffect(() => {
         if (!member?.id) return;
-        setLoading(true);
+        setTimeout(() => setLoading(true), 0);
         fetch(`/api/family?memberId=${member.id}`)
             .then(r => r.json()).then(d => { setFamily(Array.isArray(d) ? d : []); setLoading(false); })
             .catch(() => setLoading(false));
@@ -85,18 +85,18 @@ function PaymentsView({ member, onBack }) {
     const [loading, setLoading] = useState(false);
     const LIMIT = 10;
 
-    const load = (o) => {
+    const load = useCallback((o) => {
         if (!member?.id) return;
-        setLoading(true);
+        setTimeout(() => setLoading(true), 0);
         fetch(`/api/payments?memberId=${member.id}&limit=${LIMIT}&offset=${o}`)
             .then(r => r.json()).then(d => {
                 setPayments(prev => o === 0 ? (d.payments || []) : [...prev, ...(d.payments || [])]);
                 setTotal(d.total || 0);
                 setLoading(false);
             }).catch(() => setLoading(false));
-    };
+    }, [member?.id]);
 
-    useEffect(() => { load(0); }, [member?.id]);
+    useEffect(() => { load(0); }, [load]);
 
     const fmt = (n) => n?.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 });
 
@@ -155,7 +155,7 @@ function NotificationsView({ member, onBack }) {
 
     useEffect(() => {
         if (!member?.id) return;
-        setLoading(true);
+        setTimeout(() => setLoading(true), 0);
         const params = new URLSearchParams({ memberId: member.id });
         if (filter === 'unread') params.set('unread', 'true');
         if (search) params.set('search', search);

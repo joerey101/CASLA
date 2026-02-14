@@ -7,7 +7,7 @@ export default function CarnetQRTab({ member }) {
     const [loading, setLoading] = useState(true);
 
     const fetchQR = useCallback(async () => {
-        setLoading(true);
+        setTimeout(() => setLoading(true), 0);
         try {
             const res = await fetch('/api/member/qr');
             const data = await res.json();
@@ -20,7 +20,7 @@ export default function CarnetQRTab({ member }) {
         setLoading(false);
     }, [member]);
 
-    useEffect(() => { fetchQR(); }, [fetchQR]);
+    useEffect(() => { setTimeout(fetchQR, 0); }, [fetchQR]);
 
     useEffect(() => {
         if (timeLeft <= 0) { setTimeout(fetchQR, 0); return; }

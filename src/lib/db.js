@@ -12,7 +12,10 @@ if (!prisma) {
             // === PRODUCTION: Neon PostgreSQL ===
             const { Pool } = require('pg');
             const { PrismaPg } = require('@prisma/adapter-pg');
-            const pool = new Pool({ connectionString: dbUrl });
+            const pool = new Pool({
+                connectionString: dbUrl,
+                ssl: { rejectUnauthorized: false }
+            });
             const adapter = new PrismaPg(pool);
             prisma = new PrismaClient({ adapter });
             console.log('[DB] Connected: PostgreSQL');
