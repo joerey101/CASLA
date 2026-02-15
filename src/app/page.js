@@ -153,8 +153,9 @@ export default function App() {
     const found = database.filter(s => {
       const cleanNumero = (s.memberNumber || s.numero || "").toString().replace(/\./g, "");
       const cleanDNI = (s.dni || "").toString().replace(/\./g, "");
+      const cleanCUIT = (s.taxId || "").toString().replace(/\./g, "").replace(/-/g, "");
       const fullName = (s.fullName || s.nombre || "").toLowerCase();
-      return cleanNumero === cleanQuery || cleanDNI === cleanQuery || fullName.includes(query.toLowerCase());
+      return cleanNumero === cleanQuery || cleanDNI === cleanQuery || cleanCUIT === cleanQuery || fullName.includes(query.toLowerCase());
     });
 
     if (found.length === 1) {
@@ -168,8 +169,34 @@ export default function App() {
     setIsMobileMenuOpen(false);
   };
 
-  const selectMember = (member) => {
-    setSearchResult(member); setSearchResults([]); setShowMemberProfile(true);
+  const selectMember = async (member) => {
+    // If it's a family member record or a partial search result
+    // Fetch the full details from the new [id] endpoint
+    if (member && member.id) {
+      try {
+        const resp = await fetch(`/api/members/${member.id}`);
+        const fullData = await resp.json();
+        if (!fullData.error) {
+          setSearchResult(fullData);
+        } else {
+          setSearchResult(member);
+        }
+      } catch (e) {
+        setSearchResult(member);
+      }
+    } else if (member && member.memberNumber && !member.id) {
+      // Search by member number if ID isn't present (rare)
+      const fullMember = database.find(m => m.memberNumber === member.memberNumber);
+      if (fullMember) {
+        selectMember(fullMember); // Recursive call to fetch by ID
+        return;
+      }
+    } else {
+      setSearchResult(member);
+    }
+    setSearchResults([]);
+    setShowMemberProfile(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleGenerateTicket = (type) => {
@@ -209,7 +236,7 @@ export default function App() {
   // === RENDER: ACTIVE SECTION ===
   const renderSection = () => {
     if (showMemberProfile && searchResult) {
-      return <MemberProfileSection searchResult={searchResult} onBack={() => { setShowMemberProfile(false); setActiveTab('inicio'); }} />;
+      return <MemberProfileSection searchResult={searchResult} selectMember={selectMember} onBack={() => { setShowMemberProfile(false); setActiveTab('inicio'); }} />;
     }
 
     switch (activeTab) {
@@ -228,7 +255,7 @@ export default function App() {
       case 'solicitudes':
         return <SolicitudesSection requestsKB={requestsKB} />;
       case 'espacios':
-        return <EspaciosSection commonSpaces={commonSpaces} onManageSpace={handleSpaceAction} />;
+        return <EspaciosSection currentUser={currentUser} />;
       case 'scripts':
       case 'faq':
         return <ScriptsSection activeTab={activeTab} scripts={scripts} faqs={faqs} />;
