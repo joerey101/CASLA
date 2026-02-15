@@ -261,12 +261,12 @@ export default function MemberProfileSection({ searchResult: initialData, onBack
                                     <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 border-b pb-2">Pertenencia</h3>
                                     <div className="bg-blue-900 text-white p-8 rounded-3xl flex items-center gap-8 relative overflow-hidden group">
                                         <div className="bg-[#da291c] w-24 h-24 rounded-2xl flex flex-col items-center justify-center border border-white/20 shadow-lg">
-                                            <p className="text-[10px] font-black opacity-80 uppercase">Socio</p>
+                                            <p className="text-[10px] font-black opacity-80 uppercase">Desde</p>
                                             <p className="text-3xl font-black">{seniorityYear}</p>
                                         </div>
                                         <div className="relative z-10">
                                             <p className="font-black text-2xl tracking-tight mb-1">Pasión Cuerva</p>
-                                            <p className="text-sm font-medium text-blue-100 italic opacity-90">"Llevás el sentimiento cuervo hace {new Date().getFullYear() - seniorityYear} años"</p>
+                                            <p className="text-sm font-medium text-blue-100 italic opacity-90">"Llevás el sentimiento de Boedo desde hace {new Date().getFullYear() - seniorityYear} años"</p>
                                         </div>
                                         <Shield size={120} className="absolute -right-8 -bottom-8 opacity-5 text-white group-hover:scale-110 transition-transform duration-700" />
                                     </div>
