@@ -15,10 +15,14 @@ model Member {
   phone         String?  // Teléfono
   
   // V7.0: Datos Extendidos (Legacy)
-  taxId            String? // CUIT/CUIL
-  alternativePhone String? // Teléfono alternativo
+  taxId            String?  @unique // CUIT/CUIL (Nuevo Identificador Principal)
+  secondaryEmail   String? // Email secundario (+1)
+  alternativePhone String? // Teléfono alternativo (+1)
   addressBilling   String? // Dirección de cobraza
+  city             String? // Localidad
+  zipCode          String? // Código Postal
   birthDate        DateTime? // Fecha de nacimiento
+  joinedAt         DateTime? // Socio desde...
 
   category      String   // Activo Pleno, Cadete, etc.
   status        String   // ACTIVO - AL DÍA, MOROSO
@@ -50,6 +54,7 @@ model Member {
   // V7.0: Nuevos Módulos
   interactions  Interaction[]
   documents     MemberDocument[]
+  bookings      Booking[]
 }
 
 model AccessLog {
@@ -166,5 +171,30 @@ model MemberDocument {
   storageUrl  String   // URL del archivo (S3/Blob)
   expirationDate DateTime? // Para aptos médicos
   status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
-  uploadedAt  DateTime @default(now())
+}
+// V7.0: Módulo Gestión de Espacios (Space Management)
+model Space {
+  id          String    @id @default(cuid())
+  name        String    // "Quincho 1", "Cancha Tenis A"
+  category    String    // "QUINCHO", "TENIS", "PILETA", "FUTBOL"
+  capacity    Int       // Aforo máximo
+  price       Float     // Precio base del turno
+  isActive    Boolean   @default(true)
+  bookings    Booking[]
+}
+
+model Booking {
+  id          String   @id @default(cuid())
+  spaceId     String
+  space       Space    @relation(fields: [spaceId], references: [id])
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  date        DateTime // Fecha del turno
+  timeSlot    String   // "18:00", "20:00" - Podría mejorar a DateTime range
+  status      String   @default("CONFIRMED") // CONFIRMED, CANCELLED, PENDING_PAYMENT
+  createdBy   String   @default("MEMBER") // MEMBER, STAFF
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date, spaceId]) // Optimizar búsqueda de disponibilidad
 }

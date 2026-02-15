@@ -75,7 +75,7 @@ export default function DashboardSection({
                             <div key={s.id} onClick={() => selectMember(s)} className="p-3 border-b border-orange-100 hover:bg-orange-100 cursor-pointer flex justify-between items-center transition-colors">
                                 <div>
                                     <p className="font-bold text-slate-800 text-xs">{s.fullName || s.nombre}</p>
-                                    <p className="text-[10px] text-slate-500">Socio N° {s.memberNumber || s.numero} | DNI: {s.dni}</p>
+                                    <p className="text-[10px] text-slate-500">Socio N° {s.memberNumber || s.numero} | DNI: {s.dni} {s.taxId && `| CUIT: ${s.taxId}`}</p>
                                 </div>
                                 <span className="text-[9px] font-black text-orange-600 bg-white px-2 py-1 rounded-full uppercase">{s.category || s.categoria}</span>
                             </div>
